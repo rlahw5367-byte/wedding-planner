@@ -1341,5 +1341,137 @@ const m = location.hash.match(/room=([a-z0-9]{8,40})/i);
 let saved = null; try{ saved = localStorage.getItem(ROOM_KEY); }catch(e){}
 if(m) connect(m[1], false); else if(saved) connect(saved, false);
 </script>
+<style id="mobile-fixes">
+.ptog,.vtog,#pane-vendors .vnav{display:none}
+/* 알림창: hidden 인데도 보이던 문제 */
+#toast[hidden]{display:none!important}
+#toast{bottom:calc(74px + env(safe-area-inset-bottom,0px))}
+body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+
+/* 맨 위로 버튼 */
+#toTop{position:fixed;right:14px;bottom:calc(62px + env(safe-area-inset-bottom,0px));z-index:60;width:42px;height:42px;border-radius:50%;
+  border:1px solid var(--line);background:var(--paper);color:var(--sage);font-size:18px;line-height:1;cursor:pointer;
+  box-shadow:0 2px 10px rgba(0,0,0,.2);opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s,transform .2s}
+#toTop.show{opacity:1;pointer-events:auto;transform:none}
+
+@media (max-width:700px){
+  /* 상단 버튼 줄: 옆으로 잘리지 않게 줄바꿈 */
+  .tools{flex-wrap:wrap;overflow:visible}
+
+  /* ── 예산 목록: 카드형 ── */
+  .ledger tbody tr{position:relative;display:block;padding:14px 0 14px}
+  .ledger tbody tr.section-divider{padding:0}
+  .ledger tr > td:first-child{padding-right:74px}
+  .ledger tr > td.chk{position:absolute;left:auto!important;right:36px;top:10px;width:auto!important;padding:0}
+  .ledger td.chk input{width:24px;height:24px}
+  .ledger tr > td:last-child{position:absolute;left:auto!important;right:-2px;top:8px;width:auto!important}
+  .ledger .row-title{font-size:15px;font-weight:500}
+  .ledger .itemdesc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+  .ledger .itemdesc.open{-webkit-line-clamp:unset}
+  .ledger td.nums-m{display:grid;grid-template-columns:auto 1fr auto 1fr auto 1fr;align-items:center;gap:6px 6px;margin-top:10px;white-space:normal}
+  .ledger td.nums-m .lbl{font-size:11px;margin:0}
+  .ledger td.nums-m input.num{width:100%;max-width:none;min-width:0;font-size:16px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper)}
+  .ledger .memo{font-size:14px;margin-top:8px}
+  .ledger .pay-status{max-width:none;width:100%;font-size:13px;padding:6px}
+  .ledger .settlement{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+  .ledger .settlement input{font-size:16px}
+
+  .ledger tr > td:nth-child(3){display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+  .ledger tr > td:nth-child(3) .memo{flex:1 1 55%;width:auto;margin-top:0;min-width:0}
+  .ledger tr > td:nth-child(3) .pay-status,.ledger tr > td:nth-child(3) .settlement,.ledger tr > td:nth-child(3) .balance{flex:1 1 100%}
+  .ledger .ptog{display:inline-block;flex:none;background:none;border:1px solid var(--line);border-radius:999px;color:var(--sage);font-size:12px;padding:6px 11px;margin:0;cursor:pointer}
+  .ledger tr.pay-closed .pay-status,.ledger tr.pay-closed .settlement,.ledger tr.pay-closed .balance{display:none}
+  /* ── 업체 비교: 접히는 카드 ── */
+  .vgroup{margin-top:22px}
+  #pane-vendors .vnav{display:flex;gap:7px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none}
+  #pane-vendors .vnav::-webkit-scrollbar{display:none}
+  #pane-vendors .vnav a{flex:none;font-size:13px;text-decoration:none;padding:7px 13px;border:1px solid var(--line);border-radius:999px;background:var(--soft);color:var(--sage)}
+  .vgroup{scroll-margin-top:12px}
+  table.vend tbody tr[data-vg]{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;padding:14px 0;align-items:end}
+  table.vend tr[data-vg] > td{width:auto;padding:0;min-width:0}
+  table.vend tr[data-vg] > td:nth-child(1){grid-column:1/-1;padding-right:84px}
+  table.vend tr[data-vg] > td:nth-child(5){grid-column:1/-1}
+  table.vend tr[data-vg] > td:last-child{position:absolute;right:-2px;top:8px;display:flex;align-items:center;width:auto}
+  table.vend tr[data-vg] input.name{font-size:16px}
+  table.vend input{font-size:16px}
+  table.vend tr[data-vg].vc-closed > td:nth-child(2),
+  table.vend tr[data-vg].vc-closed > td:nth-child(4),
+  table.vend tr[data-vg].vc-closed > td:nth-child(5){display:none}
+  .vtog{display:inline-block;background:none;border:1px solid var(--line);border-radius:999px;color:var(--sage);font-size:12px;padding:4px 10px;margin-right:4px;cursor:pointer}
+  .stars button{font-size:20px;padding:2px 3px}
+}
+</style>
+<button id="toTop" type="button" aria-label="맨 위로">↑</button>
+<script>
+(function(){
+  /* 맨 위로 */
+  var tt=document.getElementById('toTop');
+  function onScroll(){ tt.classList.toggle('show', window.scrollY>500); }
+  window.addEventListener('scroll', onScroll, {passive:true}); onScroll();
+  tt.addEventListener('click', function(){ window.scrollTo({top:0,behavior:'smooth'}); });
+
+  /* 업체 비교: 그룹 바로가기 + 카드 접기/펼치기 */
+  var openRows = {};
+  var _rv = window.renderVendors;
+  function decorate(){
+    var pane=document.getElementById('pane-vendors'); if(!pane) return;
+    var groups=pane.querySelectorAll('.vgroup'), nav='';
+    groups.forEach(function(g,i){
+      var id='vg-'+i; g.id=id;
+      var h=g.querySelector('h2'); nav+='<a href="#'+id+'" data-vjump="'+id+'">'+(h?h.textContent:'')+'</a>';
+    });
+    if(!pane.querySelector('.vnav') && groups.length){
+      var d=document.createElement('div'); d.className='vnav'; d.innerHTML=nav;
+      var note=pane.querySelector('.note'); (note&&note.nextSibling)?pane.insertBefore(d,note.nextSibling):pane.insertBefore(d,pane.firstChild);
+    }
+    pane.querySelectorAll('tr[data-vg]').forEach(function(tr){
+      var key=tr.dataset.vg+'-'+tr.dataset.vi;
+      var name=(tr.querySelector('input.name')||{}).value;
+      var open = openRows[key]===undefined ? false : openRows[key];
+      tr.classList.toggle('vc-closed', !open);
+      var last=tr.lastElementChild;
+      if(last && !last.querySelector('.vtog')){
+        var b=document.createElement('button'); b.type='button'; b.className='vtog'; b.dataset.vtog=key;
+        last.insertBefore(b,last.firstChild);
+      }
+      var tb=tr.querySelector('.vtog'); if(tb) tb.textContent=open?'접기 ▴':'펼치기 ▾';
+    });
+  }
+  /* 예산 목록: 결제 정보 접기 (모바일) */
+  var openPay = {};
+  function decorateBudget(){
+    document.querySelectorAll('#pane-budget .ledger tbody tr').forEach(function(tr){
+      var memo=tr.querySelector('input.memo'); if(!memo) return;
+      var td=memo.parentElement, key=memo.dataset.ci+'-'+memo.dataset.ii;
+      var paid=tr.querySelector('.settlement input[data-ledger="paid"]');
+      var open = openPay[key]===undefined ? (paid && Number(paid.value)>0) : openPay[key];
+      tr.classList.toggle('pay-closed', !open);
+      var b=td.querySelector('.ptog');
+      if(!b){ b=document.createElement('button'); b.type='button'; b.className='ptog'; b.dataset.ptog=key; memo.insertAdjacentElement('afterend',b); }
+      b.textContent = open ? '결제 정보 접기 ▴' : '결제 정보 ▾';
+    });
+  }
+  var _rb2=window.renderBudget;
+  window.renderBudget=function(){ var r=_rb2.apply(this,arguments); decorateBudget(); return r; };
+  decorateBudget();
+  if(_rv){ window.renderVendors=function(){ var r=_rv.apply(this,arguments); decorate(); return r; }; }
+  document.addEventListener('click', function(e){
+    var t=e.target;
+    if(t.dataset && t.dataset.ptog){
+      var r2=t.closest('tr'); var cl=r2.classList.toggle('pay-closed');
+      openPay[t.dataset.ptog]=!cl; t.textContent=cl?'결제 정보 ▾':'결제 정보 접기 ▴'; return;
+    }
+    if(t.dataset && t.dataset.vtog){
+      var tr=t.closest('tr'); var closed=tr.classList.toggle('vc-closed');
+      openRows[t.dataset.vtog]=!closed; t.textContent=closed?'펼치기 ▾':'접기 ▴'; return;
+    }
+    if(t.dataset && t.dataset.vjump){
+      e.preventDefault(); var g=document.getElementById(t.dataset.vjump); if(g) g.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  });
+  /* 이미 그려진 경우 */
+  decorate();
+})();
+</script>
 </body>
 </html>

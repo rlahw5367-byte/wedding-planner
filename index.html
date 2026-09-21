@@ -418,6 +418,7 @@ footer{border-top:1px solid var(--line);padding:22px 0 60px;font-size:12px;font-
       <button role="tab" data-tab="budget" aria-selected="true">예산</button>
       <button role="tab" data-tab="timeline" aria-selected="false">타임라인</button>
       <button role="tab" data-tab="vendors" aria-selected="false">업체 비교</button>
+      <button role="tab" data-tab="home" aria-selected="false">혼수·신혼집</button>
       <button role="tab" data-tab="questions" aria-selected="false">계약 전 질문</button>
     </nav>
   </div>
@@ -439,6 +440,7 @@ footer{border-top:1px solid var(--line);padding:22px 0 60px;font-size:12px;font-
   <section class="pane" id="pane-budget"></section>
   <section class="pane" id="pane-timeline" hidden></section>
   <section class="pane" id="pane-vendors" hidden></section>
+  <section class="pane" id="pane-home" hidden></section>
   <section class="pane" id="pane-questions" hidden></section>
 </main>
 
@@ -572,7 +574,9 @@ const PHASES = [
   "@웨딩홀 3~5곳 투어 예약 — 2027년 가을 주말 낮 시간대는 지금이 예약 오픈 시기입니다. 최우선",
   "상견례 일정 잡기",
   "플래너 이용 방식 결정 — 무료 컨설팅(업체 수수료 구조) / 유료 플래너 / 다이렉트 중 선택",
-  "결혼 준비 전용 통장·카드 분리하고 이 장부와 연결"
+  "결혼 준비 전용 통장·카드 분리하고 이 장부와 연결",
+  "신혼집 위치·계약 일정 정하기 — 입주일이 정해져야 혼수 구매 시기를 역산할 수 있습니다",
+  "혼수 예산과 품목 정하기 — '혼수·신혼집' 탭에서 가전·가구 목록을 확인하고 양가와 분담 합의"
  ]},
  {m:[12,10], t:"핵심 계약", items:[
   "@웨딩홀 계약 — 각보증·합산보증, 초과 단가, 스태프 식대, 주차 대수를 반드시 서면으로",
@@ -587,48 +591,56 @@ const PHASES = [
   "드레스 투어 — 피팅비 차감 조건 확인하고 상한선 정하고 가기",
   "신랑 예복 알아보기 (맞춤이면 제작 4~6주)",
   "웨딩 스킨케어·PT 시작",
-  "예단·이바지 방향을 양가와 미리 조율 — 늦게 꺼낼수록 갈등이 큽니다"
+  "예단·이바지 방향을 양가와 미리 조율 — 늦게 꺼낼수록 갈등이 큽니다",
+  "혼수 가전·가구 브랜드·모델 비교, 매장 방문해 견적 받기"
  ]},
  {m:[6,5], t:"촬영", items:[
   "웨딩 촬영 진행",
   "촬영 헬퍼비·헤어변형비 현금 준비 (당일 결제인 경우가 많음)",
   "앨범·액자 셀렉, 원본 수령",
   "웨딩밴드 주문 (사이즈 조정 기간 포함해 여유 있게)",
-  "혼주 한복 대여·맞춤 예약"
+  "혼주 한복 대여·맞춤 예약",
+  "혼수 가전 프로모션·결혼 시즌 할인·패키지 조건 비교 (동일 모델 최저가 확인)"
  ]},
  {m:[4,3], t:"본식 설계", items:[
   "@본식 드레스 셀렉 — 드레스 추가금이 여기서 확정됩니다. 예산 상한 미리 합의",
   "청첩장 제작, 하객 리스트 최종 정리",
   "식순 설계, 사회자·축가 섭외 및 답례 기준 정하기",
   "식전영상 제작 또는 의뢰",
-  "답례품 종류·수량 결정"
+  "답례품 종류·수량 결정",
+  "@혼수 가전·가구 주문 — 재고·납기가 4~8주 걸리는 품목이 있어 입주일 기준으로 배송 일정 확정"
  ]},
  {m:[2,2], t:"알리기", items:[
   "청첩장 배포 시작 (모바일 먼저, 종이는 만나서)",
   "청첩장 모임 일정 — 여기서 식사비가 크게 나갑니다. 예산에 반영되어 있는지 확인",
   "하객 참석 여부 1차 집계",
   "답례품 발주",
-  "네일·왁싱·치아미백 등 시술 일정 잡기"
+  "네일·왁싱·치아미백 등 시술 일정 잡기",
+  "이사업체 견적 비교·예약 (성수기 주말은 빨리 마감)",
+  "인터넷·TV 설치, 주소지 관련 신청 일정 잡기"
  ]},
  {m:[1,1], t:"확정", items:[
   "@최종 보증인원 확정 — 계약서에 명시된 기한과 감원 조건을 확인하세요",
   "홀 최종 점검표와 계약서 대조 — 조항이 바뀌지 않았는지 확인",
   "당일 타임테이블 작성 (메이크업 시작 시각부터 역산)",
   "잔금 납부 일정 정리",
-  "당일 현금 봉투 준비 — 헬퍼, 수모, 도우미, 사회자, 축가"
+  "당일 현금 봉투 준비 — 헬퍼, 수모, 도우미, 사회자, 축가",
+  "가전·가구 배송·설치 일정 최종 확인, 입주 청소 예약"
  ]},
  {m:[0,0], t:"D-2주 ~ 당일", items:[
   "스태프 식대·주차 최종 확인",
   "축의함·방명록·접수 담당 확정, 축의금 관리 동선 정하기",
   "드레스 최종 피팅",
   "비상용품 준비 (반짇고리, 밴드, 여분 스타킹, 진통제, 립)",
-  "예식 후 잔금·답례 정산"
+  "예식 후 잔금·답례 정산",
+  "신혼집 입주·설치 검수 — 하자 확인, 영수증·보증서 보관"
  ]},
  {m:[-3,-3], t:"결혼식 이후", items:[
   "앨범 수령 (보통 2~3개월 소요)",
   "혼인신고 및 각종 명의 변경",
   "감사 인사 전달",
-  "신혼부부 대상 정책 확인 (대출·세제·청약)"
+  "신혼부부 대상 정책 확인 (대출·세제·청약)",
+  "전입신고·주소 변경, 혼수 영수증·보증서 정리"
  ]}
 ];
 
@@ -963,9 +975,10 @@ document.getElementById("toastUndo").addEventListener("click", ()=>{
 document.querySelectorAll(".tabs button").forEach(b=>{
   b.addEventListener("click", ()=>{
     document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected", x===b));
-    ["budget","timeline","vendors","questions"].forEach(t=>{ document.getElementById("pane-"+t).hidden = (t!==b.dataset.tab); });
+    ["budget","timeline","vendors","home","questions"].forEach(t=>{ document.getElementById("pane-"+t).hidden = (t!==b.dataset.tab); });
     if(b.dataset.tab==="timeline") renderTimeline();
     if(b.dataset.tab==="vendors") renderVendors();
+    if(b.dataset.tab==="home" && window.renderHome) renderHome();
     if(b.dataset.tab==="questions") renderQuestions();
   });
 });
@@ -1260,7 +1273,7 @@ function statusText(){
 function setState(s){ state = s; label(); statusText(); }
 
 function rerender(){
-  ["renderBudget","renderTimeline","renderVendors","renderQuestions","renderVers","paintHero"].forEach(n=>{ try{ window[n] && window[n](); }catch(e){} });
+  ["renderBudget","renderTimeline","renderVendors","renderQuestions","renderHome","renderVers","paintHero"].forEach(n=>{ try{ window[n] && window[n](); }catch(e){} });
   statusText();
 }
 function applyRemote(json){
@@ -1340,6 +1353,120 @@ label();
 const m = location.hash.match(/room=([a-z0-9]{8,40})/i);
 let saved = null; try{ saved = localStorage.getItem(ROOM_KEY); }catch(e){}
 if(m) connect(m[1], false); else if(saved) connect(saved, false);
+</script>
+<style id="home-tab">
+#pane-home .hnote{margin-top:16px}
+.hrow{position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:8px 10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.hrow .hon{width:22px;height:22px;accent-color:var(--sage)}
+.hrow .hname{min-width:0;border:0;background:transparent;font-size:15px;font-weight:500;padding:4px 0}
+.hrow .hname:focus{outline:0;border-bottom:1px solid var(--sage2)}
+.hnums{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.hnums label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.hnums input.num{width:88px;max-width:none;border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:16px;background:var(--paper);text-align:right}
+.hnums .hbuy{margin-left:auto;color:var(--ink);font-size:13px}
+.hnums .hbuy input{width:22px;height:22px;accent-color:var(--sage)}
+.hrow .hmemo{grid-column:1/-1;border:0;border-bottom:1px solid var(--line);background:transparent;padding:4px 2px;font-size:14px;font-weight:300}
+.hrow.off{opacity:.45}
+.hrow.bought .hname{color:var(--sage)}
+.hgroup{margin:16px 0}
+.hgroup .hadd{margin-top:12px}
+.htarget{width:100%;font-size:22px;font-weight:700;border:0;border-bottom:1px solid var(--line);background:transparent;padding:2px 0;color:var(--ink)}
+</style>
+<script>
+(function(){
+  var CATS=[['appl','가전'],['furn','가구'],['bed','침구 · 인테리어'],['kit','주방 · 생활용품'],['move','이사 · 입주']];
+  function I(c,n,plan,memo){ return {c:c,n:n,plan:plan,act:'',memo:memo||'',on:true,bought:false}; }
+  function defaultHome(){ return {target:0, items:[
+    I('appl','냉장고',150),I('appl','김치냉장고',80),I('appl','세탁기',100),I('appl','건조기',110),I('appl','에어컨',120),I('appl','TV',120),
+    I('appl','청소기 (무선·로봇)',70),I('appl','식기세척기',70),I('appl','전자레인지 · 오븐',30),I('appl','인덕션 · 가스레인지',40),I('appl','공기청정기',40),I('appl','밥솥 · 소형가전',40),
+    I('furn','침대 · 매트리스',150),I('furn','소파',100),I('furn','식탁 · 의자',70),I('furn','옷장 · 수납장',100),I('furn','화장대 · 책상',40),
+    I('bed','침구 · 커튼 · 블라인드',60),I('bed','조명',30),I('bed','러그 · 소품',30),
+    I('kit','그릇 · 냄비 · 식기',60),I('kit','욕실 · 생활용품',30),
+    I('move','이사비',100),I('move','입주 청소',30),I('move','인터넷 · 설치비',10)
+  ]}; }
+  function normHome(h){
+    if(!h || !Array.isArray(h.items)) return defaultHome();
+    return {target:Number(h.target)||0, items:h.items.map(function(i){ return Object.assign({c:'appl',n:'',plan:'',act:'',memo:'',on:true,bought:false},i); })};
+  }
+  /* 저장·불러오기·버전·초기화에 혼수 데이터가 함께 다니도록 연결 */
+  var _def=window.defaults; window.defaults=function(){ var r=_def.apply(this,arguments); r.home=defaultHome(); return r; };
+  var _hy=window.hydrate;
+  window.hydrate=function(x){ var r=_hy.apply(this,arguments); r.home = (x&&x.home) ? normHome(x.home) : (st&&st.home ? st.home : defaultHome()); return r; };
+  var _cp=window.compact; window.compact=function(){ var o=_cp.apply(this,arguments); o.home=JSON.parse(JSON.stringify(st.home)); return o; };
+  try{ var raw=localStorage.getItem(KEY); st.home=normHome(raw?JSON.parse(raw).home:null); }catch(e){ st.home=normHome(null); }
+
+  function amt(i){ if(!i.on) return 0; return (i.act!=='' && i.act!=null) ? (Number(i.act)||0) : (Number(i.plan)||0); }
+  function fm(n){ return (Math.round(n*10)/10).toLocaleString('ko-KR'); }
+  function esc2(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function sums(){
+    var h=st.home, plan=0, bought=0, per={};
+    h.items.forEach(function(i){ var a=amt(i); plan+=a; if(i.bought) bought+=a; per[i.c]=(per[i.c]||0)+a; });
+    return {plan:plan,bought:bought,per:per};
+  }
+  function paintTotals(){
+    var s=sums(), h=st.home, pane=document.getElementById('pane-home'); if(!pane) return;
+    var set=function(k,v){ var el=pane.querySelector('[data-hv="'+k+'"]'); if(el) el.textContent=v; };
+    set('plan',fm(s.plan)+' 만원'); set('bought',fm(s.bought)+' 만원');
+    set('left', h.target>0 ? fm(h.target-s.plan)+' 만원' : '목표를 입력하세요');
+    CATS.forEach(function(c){ set('cat-'+c[0], fm(s.per[c[0]]||0)+'만원'); });
+  }
+  function row(i,idx){
+    return '<div class="hrow'+(i.on?'':' off')+(i.bought?' bought':'')+'" data-hi="'+idx+'">'
+     +'<input class="hon" type="checkbox" data-h="on" '+(i.on?'checked':'')+' aria-label="비용에 포함" title="비용에 포함">'
+     +'<input class="hname" data-h="n" value="'+esc2(i.n)+'" placeholder="항목 이름" aria-label="항목 이름">'
+     +'<button class="rowdel" data-hdel="1" title="삭제 (되돌릴 수 있습니다)">×</button>'
+     +'<div class="hnums"><label>예상 <input class="num" type="number" inputmode="decimal" min="0" step="0.1" data-h="plan" value="'+esc2(i.plan)+'" placeholder="만원"></label>'
+     +'<label>확정 <input class="num" type="number" inputmode="decimal" min="0" step="0.1" data-h="act" value="'+esc2(i.act)+'" placeholder="만원"></label>'
+     +'<label class="hbuy"><input type="checkbox" data-h="bought" '+(i.bought?'checked':'')+'> 구매완료</label></div>'
+     +'<input class="hmemo" data-h="memo" value="'+esc2(i.memo)+'" placeholder="구매처 · 모델 · 메모" aria-label="메모"></div>';
+  }
+  window.renderHome=function(){
+    var pane=document.getElementById('pane-home'); if(!pane) return;
+    var h=st.home;
+    var t='<div class="note hnote">신혼집 <b>혼수(가전·가구·이사)</b> 비용을 결혼식 예산과 <b>따로</b> 계산합니다. 위쪽 총액에는 포함되지 않아요. 금액 단위는 만원이고, 처음 들어 있는 금액은 <b>참고용 추정치</b>이니 실제 견적으로 바꿔 입력하세요. 확정 금액을 넣으면 예상 금액 대신 그 값으로 계산됩니다.</div>';
+    t+='<div class="dash"><div class="metric"><small>혼수 목표 예산</small><input class="htarget" type="number" inputmode="decimal" min="0" step="10" data-htarget="1" value="'+(h.target||'')+'" placeholder="만원"></div>'
+      +'<div class="metric"><small>현재 계획 합계</small><strong data-hv="plan"></strong></div>'
+      +'<div class="metric"><small>구매 완료</small><strong data-hv="bought"></strong></div>'
+      +'<div class="metric"><small>목표 대비 남은 금액</small><strong data-hv="left" style="font-size:18px"></strong></div></div>';
+    CATS.forEach(function(c){
+      t+='<details class="group hgroup" open><summary>'+c[1]+'<span class="group-sum" data-hv="cat-'+c[0]+'"></span></summary>';
+      h.items.forEach(function(i,idx){ if(i.c===c[0]) t+=row(i,idx); });
+      t+='<button class="btn hadd" data-hadd="'+c[0]+'">＋ '+c[1]+' 항목 추가</button></details>';
+    });
+    pane.innerHTML=t; paintTotals();
+  };
+  var pane=document.getElementById('pane-home');
+  pane.addEventListener('input',function(e){
+    var t=e.target;
+    if(t.dataset.htarget){ st.home.target=Number(t.value)||0; save(); paintTotals(); return; }
+    var r=t.closest('.hrow'); if(!r||!t.dataset.h||t.type==='checkbox') return;
+    var it=st.home.items[+r.dataset.hi], k=t.dataset.h;
+    it[k]=(k==='plan'||k==='act') ? (t.value===''?'':Number(t.value)) : t.value;
+    save(); paintTotals();
+  });
+  pane.addEventListener('change',function(e){
+    var t=e.target, r=t.closest('.hrow'); if(!r||!t.dataset.h||t.type!=='checkbox') return;
+    var it=st.home.items[+r.dataset.hi]; it[t.dataset.h]=t.checked;
+    r.classList.toggle('off',!it.on); r.classList.toggle('bought',!!it.bought);
+    save(); paintTotals();
+  });
+  pane.addEventListener('click',function(e){
+    var t=e.target;
+    if(t.dataset.hadd){
+      st.home.items.push({c:t.dataset.hadd,n:'',plan:'',act:'',memo:'',on:true,bought:false});
+      save(); renderHome();
+      var lastIdx=st.home.items.length-1, last=pane.querySelector('.hrow[data-hi="'+lastIdx+'"]');
+      if(last){ var n=last.querySelector('.hname'); last.scrollIntoView({block:'center'}); if(n) n.focus(); }
+      return;
+    }
+    if(t.dataset.hdel){
+      var r=t.closest('.hrow'), idx=+r.dataset.hi, it=st.home.items[idx];
+      st.home.items.splice(idx,1); save(); renderHome();
+      toast("'"+(it.n||'항목')+"' 삭제됨", function(){ st.home.items.splice(idx,0,it); save(); renderHome(); });
+    }
+  });
+  renderHome();
+})();
 </script>
 <style id="mobile-fixes">
 .ptog,.vtog,#pane-vendors .vnav{display:none}

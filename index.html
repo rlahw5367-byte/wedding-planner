@@ -2346,6 +2346,16 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .vnotes ul{margin:0 0 10px;padding-left:18px;font-size:13.5px;line-height:1.7}
 .vnotes p.vn-s{font-size:12.5px;color:var(--muted);line-height:1.6;margin:6px 0 14px}
 .vnotes .btn{margin:4px 0 14px}
+.igs{margin:14px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.igc{border:1px solid var(--line);border-radius:12px;background:var(--soft);padding:0 14px}
+.igc summary{cursor:pointer;list-style:none;padding:12px 0;display:flex;gap:8px;align-items:center;font-size:14px}
+.igc summary::-webkit-details-marker{display:none}
+.igc summary b{font-weight:500}.igc summary i{font-style:normal;color:var(--muted);font-size:12.5px}
+.igc summary::after{content:"미리보기 ▾";margin-left:auto;font-size:12px;color:var(--sage)}
+.igc[open] summary::after{content:"닫기 ▴"}
+.igc .igl{display:inline-block;margin:0 0 10px;font-size:13px;color:var(--sage)}
+.igc iframe{display:block;width:100%;height:340px;border:0;border-radius:8px;background:#fff;margin:0 0 14px}
+.igt{margin:10px 0 0;font-size:12.5px;color:var(--muted);line-height:1.6}
 </style>
 <script>
 (function(){
@@ -2370,7 +2380,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   }
   function blank(r){ return !(r.n||r.date||r.p1||r.p2||r.memo||r.rate); }
   function migrate(o){
-    if(!o||!o.vendors||!o.ui2||o.ui2.vm===1) return;
+    if(!o||!o.vendors||!o.ui2||o.ui2.vm===1) return false;
     var f=fresh();
     Object.keys(f).forEach(function(k){
       var cur=Array.isArray(o.vendors[k])?o.vendors[k]:[];
@@ -2380,10 +2390,10 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
       var add=f[k].filter(function(r){ return !names[r.n]; });
       o.vendors[k]=add.concat(keep);
     });
-    o.ui2.vm=1;
+    o.ui2.vm=1; return true;
   }
   var _d=window.defaults; window.defaults=function(){ var r=_d.apply(this,arguments); var f=fresh(); r.vendors.studio=f.studio; r.vendors.dress=f.dress; r.vendors.makeup=f.makeup; if(r.ui2) r.ui2.vm=1; return r; };
-  var _h=window.hydrate; window.hydrate=function(){ var r=_h.apply(this,arguments); migrate(r); return r; };
+  var _h=window.hydrate; window.hydrate=function(){ var r=_h.apply(this,arguments); if(migrate(r)) setTimeout(function(){ try{ save(); }catch(e){} },400); return r; };
   try{ var had=st.ui2&&st.ui2.vm===1; migrate(st); if(!had){ save(); } }catch(e){}
 
   var NOTES={
@@ -2475,10 +2485,29 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
     function fb(){ var ta=document.createElement('textarea'); ta.value=txt; ta.style.cssText='position:fixed;left:-9999px'; document.body.appendChild(ta); ta.select(); var ok=false; try{ ok=document.execCommand('copy'); }catch(e){} ta.remove(); toast(ok?'문의 메시지를 복사했어요':'복사에 실패했어요. 직접 선택해서 복사해 주세요'); }
     if(navigator.clipboard&&window.isSecureContext){ navigator.clipboard.writeText(txt).then(function(){ toast('문의 메시지를 복사했어요'); }, fb); } else fb();
   }
+
+  var IG={
+    studio:[['이브로제하우스','yvesrose_haus',''],['글렌하우스','glen.haus',''],['피아스튜디오','fia_studio_','피아 본점 계정 · 내 계약 지점인지 확인']],
+    dress:[['아뜰리에로리에','atelierlaurier_official',''],['로즈로사','roserosa.wedding',''],['우아르','wooarr_wedding','공식 보조 계정 wooarr_official_ 도 있음'],['루이즈블랑','louisblanc_bride','후기 계정은 louisblanc_official']],
+    makeup:[['애브뉴준오','avenuejuno_wedding','공식 웨딩 계정 · 담당 원장·실장 개인 계정은 따로 있음']]
+  };
+  function igHTML(k){
+    var a=IG[k]; if(!a) return '';
+    return '<div class="igs">'+a.map(function(v){
+      return '<details class="igc" data-ig="'+v[1]+'"><summary><b>'+esc(v[0])+'</b><i>@'+esc(v[1])+'</i></summary>'+
+        '<a class="igl" href="https://www.instagram.com/'+v[1]+'/" target="_blank" rel="noopener">인스타그램 프로필 열기 ↗</a>'+
+        (v[2]?'<p class="igt">'+esc(v[2])+'</p>':'')+'<div class="igbox"></div></details>';
+    }).join('')+'</div><p class="igt">미리보기는 인스타그램이 제공하는 화면이라 환경에 따라 비어 보일 수 있습니다. 그땐 프로필 링크를 눌러주세요.</p>';
+  }
+  document.getElementById('pane-vendors').addEventListener('toggle',function(e){
+    var d=e.target; if(!d.classList||!d.classList.contains('igc')||!d.open) return;
+    var box=d.querySelector('.igbox'); if(box&&!box.firstChild){ var f=document.createElement('iframe'); f.loading='lazy'; f.src='https://www.instagram.com/'+d.dataset.ig+'/embed/'; f.title=d.dataset.ig+' 인스타그램 미리보기'; box.appendChild(f); }
+  },true);
   var _rv=window.renderVendors;
   window.renderVendors=function(){
     _rv.apply(this,arguments);
     var pane=document.getElementById('pane-vendors'); if(!pane) return;
+    pane.querySelectorAll('.vgroup').forEach(function(g){ var t=(g.querySelector('.catband h2')||{}).textContent||''; var k=t.indexOf('스튜디오')===0?'studio':t.indexOf('메이크업')===0?'makeup':t.indexOf('드레스')===0?'dress':''; var ig=k&&igHTML(k); if(ig){ var w=document.createElement('div'); w.innerHTML='<h4 style="margin:18px 0 0;font-size:14px">인스타그램</h4>'+ig; g.appendChild(w); } });
     var wrap=document.createElement('div'); wrap.className='vnotes'; wrap.id='vnotes';
     wrap.innerHTML='<div class="catband"><h2>조사 메모 · 플래너 확인</h2></div>'+
       '<details><summary>스튜디오 — 작가별 후기와 유의사항</summary>'+NOTES.studio+'</details>'+

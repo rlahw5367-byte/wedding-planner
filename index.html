@@ -1681,6 +1681,20 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .hc-links a{font-size:12.5px;text-decoration:none;padding:5px 13px;border:1px solid var(--line);border-radius:100px;color:var(--sage)}
 .hc-links a:hover{border-color:var(--sage2)}
 
+.hc-sum{padding:0 18px 10px;font-size:13px;font-weight:300;color:var(--muted);line-height:1.7;margin:-6px 0 0}
+.hc-sum b{font-weight:500;color:var(--ink)}
+.hc-sum i{font-style:normal;color:var(--sage)}
+.hc-tabs{display:flex;gap:2px;padding:6px 14px 0;border-top:1px solid var(--line);margin-top:10px;overflow-x:auto}
+.hc-tabs button{flex:none;background:none;border:0;border-bottom:2px solid transparent;padding:10px 12px;font-size:13.5px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.hc-tabs button[aria-selected=true]{color:var(--sage);border-bottom-color:var(--sage);font-weight:500}
+.hc-tabs button small{font-size:11.5px;font-weight:300;margin-left:4px}
+.hc-panel{padding:14px 18px 18px;border-top:1px solid var(--line)}
+.hc-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 28px;align-items:start}
+.hc-panel h4{font-size:12px;font-weight:500;color:var(--sage);margin:0 0 6px;letter-spacing:.02em}
+.hc-panel .hc-2>div>h4:not(:first-child){margin-top:14px}
+.ht-more{margin:10px 0 0}
+.ht-more summary{cursor:pointer;font-size:13px;color:var(--muted)}
+
 #htBox{position:fixed;inset:0;z-index:200;background:rgba(14,14,10,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
 #htBox[hidden]{display:none}
 #htBox img{max-width:100%;max-height:calc(100vh - 120px);object-fit:contain;border-radius:4px}
@@ -1692,7 +1706,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 #htBox .bn{right:10px;top:50%;transform:translateY(-50%)}
 
 @media (max-width:760px){
-  .hc-body{grid-template-columns:1fr;grid-template-areas:"a" "b" "c"}
+  .hc-2{grid-template-columns:1fr}
   .hc-photos button{width:200px;height:136px}
   .hc-photos button:first-child{width:250px}
   .hc-top h3{font-size:27px}
@@ -1815,31 +1829,49 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   }
 
   /* ───────── 그리기 ───────── */
+  var TABS=[['cost','비용·시간대'],['tour','투어 기록'],['info','정보']];
+  var openTab={};
+  function chkDone(h){ var it=st.halls.items[h.id], n=0; h.checks.forEach(function(c,i){ if(it.chk[i]) n++; }); return n; }
+  function costPanel(h,it,est,sel,base){
+    var t='<div class="hc-2"><div><h4>시간대별 예상 (대관료 + 식대, 하객 '+guests()+'명)</h4><table class="hc-slots"><thead><tr><th>시간대</th><th class="n">보증</th><th class="n">예상</th><th class="n">플래너 답변</th></tr></thead><tbody>';
+    h.slots.forEach(function(s,i){ var c=slotCost(h,s), v=it.av[i]||'미확인';
+      t+='<tr class="'+(i===sel?'sel':'')+'"><td><label><input type="radio" name="slot-'+h.id+'" data-hb-slot="'+i+'" '+(i===sel?'checked':'')+'>'+e2(s.t)+'</label></td><td class="n">'+s.g+'명</td><td class="n'+(c>base?' hi':'')+'">'+fm(c)+'만</td><td class="n"><button type="button" class="av" data-hb-av="'+i+'" data-v="'+v+'">'+v+'</button></td></tr>'; });
+    t+='</tbody></table><p class="hc-note">'+e2(h.slotNote)+' 고른 시간대가 위 비교표에 쓰여요. 플래너 답변 칸을 누르면 미확인 → 가능 → 마감 순으로 바뀝니다.</p></div>';
+    t+='<div><h4>받은 견적</h4><div class="hc-form"><label class="full">총액 (만원, 입력하면 예상 대신 사용)<input type="number" inputmode="decimal" min="0" step="1" data-hb-f="quote" value="'+e2(it.quote)+'" placeholder="예: '+fm(est.real?slotCost(h,picked(h)):est.v)+'"></label></div>';
+    t+='<p class="hc-note">세금·봉사료·꽃장식·필수 스냅 등 별도 비용은 예상에 빠져 있어요.</p>';
+    t+='<h4 style="margin-top:16px">예산에 반영</h4><button type="button" class="btn" data-hb-apply="1">이 홀 · 고른 시간대로 예산 바꾸기</button><p class="hc-note">예산 탭의 대관료, 보증인원, 1인 식대가 이 홀 기준으로 바뀌고 되돌리기도 돼요. 받은 견적이 있으면 예산 탭 확정 칸에 직접 넣어주세요.</p></div></div>';
+    return t;
+  }
+  function tourPanel(h,it){
+    var t='<div class="hc-2"><div><h4>투어 일정 · 메모</h4><div class="hc-form">';
+    t+='<label>투어 날짜<input type="date" data-hb-f="tourDate" value="'+e2(it.tourDate)+'"></label>';
+    t+='<label>투어 시간<input type="time" data-hb-f="tourTime" value="'+e2(it.tourTime)+'"></label>';
+    t+='<label class="full">메모 · 플래너 답변 · 투어 느낌<textarea data-hb-f="memo" placeholder="가능한 날짜·시간, 보증인원 협상, 현장 느낌">'+e2(it.memo)+'</textarea></label></div></div>';
+    t+='<div><h4>현장에서 확인할 것 ('+chkDone(h)+'/'+h.checks.length+')</h4><ul class="hc-checks">'+h.checks.map(function(c,i){ var on=!!it.chk[i]; return '<li class="'+(on?'done':'')+'"><input type="checkbox" data-hb-chk="'+i+'" '+(on?'checked':'')+' aria-label="확인함"><span>'+e2(c)+'</span></li>'; }).join('')+'</ul></div></div>';
+    return t;
+  }
+  function infoPanel(h){
+    var t='<div class="hc-2"><div><h4>두 분 점수 · 이유</h4><p class="hc-why">'+e2(h.why)+'</p><div class="hc-scores">'+h.sc.map(function(v,i){return SC_LABELS[i]+' <b>'+v+((h.scMark||{})[i]||'')+'</b>';}).join('')+'</div></div>';
+    t+='<div><h4>기본 정보</h4><dl class="hc-facts"><dt>교통</dt><dd>'+e2(h.subway)+'</dd><dt>주차</dt><dd>'+e2(h.parking)+'</dd><dt>홀</dt><dd>'+e2(h.seats)+'</dd><dt>예식 간격</dt><dd>'+e2(h.gap)+'</dd><dt>대관료</dt><dd>'+fm(h.rent)+'만원</dd><dt>식대</dt><dd>1인 '+h.meal+'만원 · '+e2(h.mealNote)+'</dd><dt>주소</dt><dd>'+e2(h.addr)+'</dd></dl>';
+    t+='<div class="hc-links"><a href="tel:'+e2(h.tel.replace(/-/g,''))+'">전화 '+e2(h.tel)+'</a><a href="https://map.naver.com/p/search/'+encodeURIComponent(h.name)+'" target="_blank" rel="noopener">네이버 지도</a><a href="'+e2(h.home)+'" target="_blank" rel="noopener">홈페이지</a></div></div></div>';
+    return t;
+  }
   function cardHTML(h){
-    var it=st.halls.items[h.id], est=estimate(h), sel=Math.min(it.slot||0,h.slots.length-1);
+    var it=st.halls.items[h.id], est=estimate(h), sel=Math.min(it.slot||0,h.slots.length-1), sl=picked(h);
     var base=Math.min.apply(null,h.slots.map(function(s){return slotCost(h,s);}));
+    var tab=openTab[h.id]||'';
     var t='<article class="hcard'+(it.status==='제외'?' out':'')+'" id="hc-'+h.id+'" data-hb="'+h.id+'">';
     t+='<div class="hc-top"><div><h3>'+e2(h.name)+'<span class="sub">'+e2(h.hall)+' · '+e2(h.area)+'</span></h3></div><span class="sp"></span>';
     t+='<select class="hc-status" data-hb-f="status" data-s="'+e2(it.status)+'" aria-label="진행 상태">'+STATUSES.map(function(s){return '<option'+(s===it.status?' selected':'')+'>'+s+'</option>';}).join('')+'</select>';
     t+='<div class="hc-score"><b>'+e2(h.total)+'</b><small> / 50</small></div></div>';
+    t+='<p class="hc-sum"><b>'+fm(est.v)+'만</b> <i>'+(est.real?'받은 견적':'예상')+'</i> · '+e2(sl.t)+' · 보증 '+sl.g+'명'+(it.tourDate?' · <b>투어 '+dateLabel(it.tourDate)+(it.tourTime?' '+e2(it.tourTime):'')+'</b>':'')+'</p>';
     t+='<div class="hc-photos" role="list">'+h.photos.map(function(p,i){ return '<button type="button" role="listitem" data-hb-ph="'+h.id+':'+i+'" aria-label="'+e2(h.name+' '+p.c)+' 크게 보기"><img src="'+e2(p.s)+'" alt="'+e2(h.name+' '+p.c)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=\'none\'"><span>'+e2(p.c)+'</span></button>'; }).join('')+'</div>';
     t+='<p class="hc-src">사진 출처: <a href="'+e2(h.home)+'" target="_blank" rel="noopener">'+e2(h.homeLabel)+'</a> 공식 홈페이지'+(h.photoNote?' · '+e2(h.photoNote):'')+'</p>';
-    t+='<div class="hc-body"><div class="hc-a">';
-    t+='<h4>두 분 점수 · 이유</h4><p class="hc-why">'+e2(h.why)+'</p><div class="hc-scores">'+h.sc.map(function(v,i){return SC_LABELS[i]+' <b>'+v+((h.scMark||{})[i]||'')+'</b>';}).join('')+'</div>';
-    t+='</div><div class="hc-c"><h4>기본 정보</h4><dl class="hc-facts"><dt>교통</dt><dd>'+e2(h.subway)+'</dd><dt>주차</dt><dd>'+e2(h.parking)+'</dd><dt>홀</dt><dd>'+e2(h.seats)+'</dd><dt>예식 간격</dt><dd>'+e2(h.gap)+'</dd><dt>대관료</dt><dd>'+fm(h.rent)+'만원</dd><dt>식대</dt><dd>1인 '+h.meal+'만원 · '+e2(h.mealNote)+'</dd><dt>주소</dt><dd>'+e2(h.addr)+'</dd></dl>';
-    t+='<h4>현장에서 확인할 것</h4><ul class="hc-checks">'+h.checks.map(function(c,i){ var on=!!it.chk[i]; return '<li class="'+(on?'done':'')+'"><input type="checkbox" data-hb-chk="'+i+'" '+(on?'checked':'')+' aria-label="확인함"><span>'+e2(c)+'</span></li>'; }).join('')+'</ul>';
-    t+='</div><div class="hc-b">';
-    t+='<h4>시간대별 예상 (대관료 + 식대, 하객 '+guests()+'명)</h4><table class="hc-slots"><thead><tr><th>시간대</th><th class="n">보증</th><th class="n">예상</th><th class="n">플래너 답변</th></tr></thead><tbody>';
-    h.slots.forEach(function(s,i){ var c=slotCost(h,s), v=it.av[i]||'미확인';
-      t+='<tr class="'+(i===sel?'sel':'')+'"><td><label><input type="radio" name="slot-'+h.id+'" data-hb-slot="'+i+'" '+(i===sel?'checked':'')+'>'+e2(s.t)+'</label></td><td class="n">'+s.g+'명</td><td class="n'+(c>base?' hi':'')+'">'+fm(c)+'만</td><td class="n"><button type="button" class="av" data-hb-av="'+i+'" data-v="'+v+'">'+v+'</button></td></tr>'; });
-    t+='</tbody></table><p class="hc-note">'+e2(h.slotNote)+' 고른 시간대가 위 비교표에 쓰여요. 플래너 답변 칸을 누르면 미확인 → 가능 → 마감 순으로 바뀝니다. 세금·봉사료·필수 스냅 등 별도 비용은 빠져 있어요.</p>';
-    t+='<h4>투어 · 견적 기록</h4><div class="hc-form">';
-    t+='<label>투어 날짜<input type="date" data-hb-f="tourDate" value="'+e2(it.tourDate)+'"></label>';
-    t+='<label>투어 시간<input type="time" data-hb-f="tourTime" value="'+e2(it.tourTime)+'"></label>';
-    t+='<label class="full">받은 견적 총액 (만원, 입력하면 예상 대신 사용)<input type="number" inputmode="decimal" min="0" step="1" data-hb-f="quote" value="'+e2(it.quote)+'" placeholder="예: '+fm(est.real?slotCost(h,picked(h)):est.v)+'"></label>';
-    t+='<label class="full">메모 · 플래너 답변 · 투어 느낌<textarea data-hb-f="memo" placeholder="가능한 날짜·시간, 보증인원 협상, 현장 느낌">'+e2(it.memo)+'</textarea></label></div>';
-    t+='<div class="hc-links"><a href="tel:'+e2(h.tel.replace(/-/g,''))+'">전화 '+e2(h.tel)+'</a><a href="https://map.naver.com/p/search/'+encodeURIComponent(h.name)+'" target="_blank" rel="noopener">네이버 지도</a><a href="'+e2(h.home)+'" target="_blank" rel="noopener">홈페이지</a></div>';
-    t+='</div></div></article>';
+    t+='<div class="hc-tabs" role="tablist">'+TABS.map(function(x){ return '<button type="button" role="tab" aria-selected="'+(tab===x[0])+'" data-hb-tab="'+x[0]+'">'+x[1]+(x[0]==='tour'?'<small>'+chkDone(h)+'/'+h.checks.length+'</small>':'')+(tab===x[0]?' ▴':'')+'</button>'; }).join('')+'</div>';
+    if(tab==='cost') t+='<div class="hc-panel">'+costPanel(h,it,est,sel,base)+'</div>';
+    else if(tab==='tour') t+='<div class="hc-panel">'+tourPanel(h,it)+'</div>';
+    else if(tab==='info') t+='<div class="hc-panel">'+infoPanel(h)+'</div>';
+    t+='</article>';
     return t;
   }
 
@@ -1851,7 +1883,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
     t+='<div class="ht-tools"><div><label for="htAlt">대체 날짜 (플래너 문의 때 함께 전달)</label><input id="htAlt" data-hb-g="alt" value="'+e2(st.halls.alt)+'" placeholder="예: 11/13(토), 11/20(토)"></div>';
     t+='<div><label for="htSort">정렬</label><select id="htSort" data-hb-g="sort"><option value="score"'+(st.halls.sort==='score'?' selected':'')+'>점수 높은 순</option><option value="cost"'+(st.halls.sort==='cost'?' selected':'')+'>예상 비용 낮은 순</option><option value="status"'+(st.halls.sort==='status'?' selected':'')+'>진행 단계 순</option></select></div>';
     t+='<div><button type="button" class="btn key" data-hb-copy="1">플래너 문의 메시지 복사</button></div></div>';
-    t+='<p class="ht-route">투어 동선 — <b>1일차</b> 라온제나 강남(강남구청) → 아펠가모 선릉 · <b>2일차</b> 엘블레스(양재) → 더화이트베일(남부터미널) → 아펠가모 반포(고속터미널). 가능하면 <b>예식이 있는 주말</b>에 가야 동선·혼잡이 보여요.</p>';
+    t+='<details class="ht-more"><summary>투어 동선 제안 보기</summary><p class="ht-route">투어 동선 — <b>1일차</b> 라온제나 강남(강남구청) → 아펠가모 선릉 · <b>2일차</b> 엘블레스(양재) → 더화이트베일(남부터미널) → 아펠가모 반포(고속터미널). 가능하면 <b>예식이 있는 주말</b>에 가야 동선·혼잡이 보여요.</p></details>';
     t+='<div class="scroll"><table class="ht-sum"><thead><tr><th>웨딩홀</th><th>상태</th><th class="hide-m">고른 시간대</th><th class="n">비용</th><th class="n">점수</th><th class="n hide-m">투어</th></tr></thead><tbody>';
     hs.forEach(function(h){ var it=st.halls.items[h.id], es=estimate(h), sl=picked(h);
       t+='<tr class="'+(it.status==='제외'?'x':'')+'"><td><a href="#hc-'+h.id+'" data-hb-jump="'+h.id+'">'+e2(h.name)+'</a><small>'+e2(h.hall)+'</small></td><td>'+e2(it.status)+'</td><td class="hide-m">'+e2(sl.t)+' · 보증 '+sl.g+'</td><td class="n">'+fm(es.v)+'만<small>'+(es.real?'받은 견적':'예상')+'</small></td><td class="n">'+e2(h.total)+'</td><td class="n hide-m">'+(it.tourDate?dateLabel(it.tourDate)+(it.tourTime?' '+e2(it.tourTime):''):'—')+'</td></tr>'; });
@@ -1862,6 +1894,23 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
     return t;
   }
 
+  window.hallSummary=function(){
+    var c={}; STATUSES.forEach(function(x){ c[x]=0; }); var next=null, contract=[];
+    HALLS.forEach(function(h){ var it=st.halls.items[h.id]; c[it.status]++; if(it.status==='가계약') contract.push(h.name);
+      if(it.tourDate&&it.status!=='제외'&&it.status!=='투어 완료'){ var key=it.tourDate+(it.tourTime||''); if(!next||key<next.key) next={key:key,name:h.name,date:dateLabel(it.tourDate),time:it.tourTime}; } });
+    return {counts:c,total:HALLS.length,next:next,contract:contract};
+  };
+  function applyToBudget(h){
+    var sl=picked(h), s0=st.s, prev={guar:s0.guar,mealMin:s0.mealMin,mealMax:s0.mealMax};
+    var hc=st.cats.filter(function(c){return c.id==='hall';})[0], rent=hc&&hc.items.filter(function(i){return i.n==='대관료';})[0];
+    var pr=rent?{a:rent.a,b:rent.b,plan:rent.plan}:null;
+    s0.guar=sl.g; s0.mealMin=h.meal; s0.mealMax=h.meal;
+    if(rent){ rent.a=h.rent; rent.b=h.rent; rent.plan=h.rent; }
+    save(); if(window.renderBudget) window.renderBudget();
+    toast(h.name+' · '+sl.t+' 기준으로 예산(대관료·보증·식대)을 바꿨어요', function(){
+      s0.guar=prev.guar; s0.mealMin=prev.mealMin; s0.mealMax=prev.mealMax; if(rent&&pr){ rent.a=pr.a; rent.b=pr.b; rent.plan=pr.plan; }
+      save(); if(window.renderBudget) window.renderBudget(); });
+  }
   function paint(){
     var pane=document.getElementById('pane-vendors'); if(!pane) return;
     var old=document.getElementById('hallTour'); if(old) old.remove();
@@ -1922,6 +1971,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   });
   pane.addEventListener('click',function(e){
     var t=e.target.closest('button,a'); if(!t) return;
+    if(t.dataset.hbTab){ var o2=itemOf(t); if(!o2) return; openTab[o2.id]=(openTab[o2.id]===t.dataset.hbTab)?'':t.dataset.hbTab; paint(); var c2=document.getElementById('hc-'+o2.id); if(c2){ var r=c2.getBoundingClientRect(); if(r.top<0||r.top>window.innerHeight*0.6) c2.scrollIntoView({block:'start'}); } return; }
+    if(t.dataset.hbApply){ var o4=itemOf(t); if(o4) applyToBudget(HALLS.filter(function(h){return h.id===o4.id;})[0]); return; }
     if(t.dataset.hbPh){ var p=t.dataset.hbPh.split(':'); open(p[0],+p[1]); return; }
     if(t.dataset.hbCopy){ copyText(message()); return; }
     if(t.dataset.hbJump){ e.preventDefault(); var c=document.getElementById('hc-'+t.dataset.hbJump); if(c) c.scrollIntoView({behavior:'smooth',block:'start'}); return; }
@@ -1944,6 +1995,344 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   }
 
   paint();
+})();
+</script>
+<style id="tidy">
+/* ── 공통 ── */
+.kpi3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:6px 0 12px}
+.kpi3 .metric{background:var(--soft);border-radius:8px;padding:14px 16px}
+.kpi3 .metric small{display:block;font-size:12px;font-weight:300;color:var(--muted)}
+.kpi3 .metric strong{display:block;font-size:30px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+.kpi3 .metric strong i{font-style:normal;font-size:14px;font-weight:400;margin-left:2px}
+.kpi3 .metric.bad strong{color:var(--clay)}
+.kpi3 .metric.good strong{color:var(--sage)}
+.cbar{display:flex;height:16px;border-radius:100px;overflow:hidden;background:var(--line);margin:8px 0 8px}
+.cbar span{display:block;height:100%;min-width:2px}
+.clegend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;font-weight:300;margin:0 0 12px}
+.clegend a{color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.clegend a i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.clegend a b{font-weight:500}
+.top5{font-size:12.5px;font-weight:300;color:var(--muted);line-height:2;margin:0 0 6px}
+.top5 b{font-weight:500;color:var(--ink);margin-right:6px}
+.top5 span{display:inline-block;border:1px solid var(--line);border-radius:100px;padding:1px 10px;margin:0 5px 0 0;color:var(--ink);background:var(--panel)}
+.top5 span em{font-style:normal;color:var(--sage);font-weight:500;margin-left:4px}
+.dash-more{margin:6px 0 10px}
+.dash-more summary{cursor:pointer;font-size:13px;color:var(--muted)}
+.dash-more .dash{margin-top:10px}
+.helpwrap{margin:8px 0 4px}
+.helpwrap summary{cursor:pointer;font-size:13px;color:var(--muted)}
+/* 예산: 분류 접기, 항목 한 줄 */
+.ledger-section>.catband{cursor:pointer;user-select:none}
+.ledger-section>.catband h2::before{content:"▸";display:inline-block;width:.9em;font-size:.6em;color:var(--sage);vertical-align:.15em}
+.ledger-section.open>.catband h2::before{content:"▾"}
+.ledger-section:not(.open)>*:not(.catband){display:none}
+.ledger-section .cprog{font-size:11.5px;font-weight:300;color:var(--muted)}
+.cornerbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.cornerbar .btn{padding:5px 12px;font-size:12px}
+.rowtog{background:none;border:1px solid var(--line);border-radius:100px;color:var(--sage);font-size:11.5px;padding:2px 9px;margin-left:8px;cursor:pointer;white-space:nowrap}
+.rowtog.has{border-color:var(--sage2)}
+.ledger tr:not(.row-open) .itemdesc,.ledger tr:not(.row-open) .auto-help{display:none}
+.ledger tr:not(.row-open) td:nth-child(3)>*{display:none}
+@media (max-width:700px){
+  .ledger-section>.catband{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}
+  .ledger-section>.catband h2{font-size:21px;flex:1 1 100%}
+  .ledger-section>.catband .csum{margin-left:auto}
+  .kpi3{gap:6px}
+  .kpi3 .metric{padding:11px 10px}
+  .kpi3 .metric strong{font-size:21px}
+  .ledger tr:not(.row-open) td:nth-child(3){display:none!important}
+  .rowtog{margin:4px 0 0 0;display:inline-block}
+  .ledger tr.section-divider>td{position:static!important;display:block;width:auto!important;padding:12px 0 4px!important}
+  .hnums{flex-wrap:nowrap!important;gap:6px 8px!important}
+  .hnums input.num{width:60px!important}
+  .hnums label{white-space:nowrap}
+  .hnums .hbuy{font-size:12px!important;white-space:nowrap}
+  .hrow{padding:9px 0!important}
+}
+/* 타임라인 */
+.tl-strip{display:flex;gap:4px;margin:10px 0 4px}
+.tl-strip button{flex:1 1 0;min-width:0;border:0;background:var(--line);height:34px;border-radius:5px;position:relative;overflow:hidden;cursor:pointer;padding:0;color:var(--ink);font-size:11px}
+.tl-strip button i{position:absolute;left:0;top:0;bottom:0;background:var(--sage2);opacity:.45}
+.tl-strip button span{position:relative;display:block;padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-strip button.cur{outline:2px solid var(--sage);outline-offset:1px}
+.tl-now{background:var(--soft);border-radius:8px;padding:14px 16px 10px;margin:10px 0 14px}
+.tl-now h3{font-size:22px;margin:0 0 2px}
+.tl-now .when{font-size:12px;font-weight:300;color:var(--muted);margin-left:8px;font-family:"Gothic A1",sans-serif}
+.tl-now ul{list-style:none;margin:8px 0 0;padding:0}
+.tl-now li{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line);font-size:14px;line-height:1.55;font-weight:300}
+.tl-now li input[type=checkbox]{margin-top:3px;width:18px;height:18px;accent-color:var(--sage);flex:none}
+.tl-now li em{font-style:normal;font-weight:500}
+.tl-now .more{display:inline-block;margin:8px 0 2px;font-size:13px;color:var(--sage);background:none;border:0;cursor:pointer;padding:0}
+.phase>h3{cursor:pointer;user-select:none}
+.phase>h3::before{content:"▸";display:inline-block;width:.8em;font-size:.55em;color:var(--sage);vertical-align:.2em}
+.phase.open>h3::before{content:"▾"}
+.phase:not(.open)>ul{display:none}
+.phase.done-all>h3{opacity:.55}
+.tl-who{margin-left:auto;flex:none;border:1px dashed var(--line);background:none;border-radius:100px;font-size:11px;color:var(--muted);padding:1px 9px;cursor:pointer;white-space:nowrap;align-self:flex-start}
+.tl-who.set{border-style:solid;border-color:var(--sage2);color:var(--sage)}
+.tl-hint{display:inline-block;margin-left:6px;font-size:11.5px;font-weight:400;color:var(--sage);border:1px solid var(--sage2);border-radius:100px;padding:0 8px;white-space:nowrap}
+.phase li{align-items:flex-start}
+/* 혼수 */
+.hgroup>summary .hcount{font-size:11.5px;font-weight:300;color:var(--muted);margin-left:10px}
+.h-moveIn{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:0 0 12px;font-size:13px;font-weight:300;color:var(--muted)}
+.h-moveIn input{border:1px solid var(--line);border-radius:5px;padding:6px 8px;background:var(--paper);font-size:15px}
+.h-moveIn b{font-weight:500;color:var(--ink)}
+.dash .metric.hide{display:none}
+@media (min-width:761px){
+  .hrow{grid-template-columns:24px minmax(130px,1.1fr) 110px 110px 92px minmax(120px,1.4fr) 28px;gap:6px 12px;padding:8px 0}
+  .hrow .hnums{display:contents}
+  .hrow .hon{grid-column:1;order:1}.hrow .hname{order:2}
+  .hrow .hnums label:nth-child(1){order:3}.hrow .hnums label:nth-child(2){order:4}.hrow .hnums .hbuy{order:5;margin-left:0}
+  .hrow .hmemo{order:6;grid-column:auto}.hrow .rowdel{order:7}
+  .hrow .hnums label{white-space:nowrap}
+  .hrow .hnums input.num{width:64px;padding:5px 6px}
+}
+/* 개요 */
+#pane-overview .ov-top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:4px 0 12px}
+#pane-overview .ov-top b{font-size:40px;letter-spacing:-.03em;color:var(--sage);font-weight:700}
+#pane-overview .ov-top span{font-size:14px;font-weight:300;color:var(--muted)}
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.ov-card{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:16px 18px 14px}
+.ov-card h3{font-size:24px;margin:0 0 8px;display:flex;align-items:baseline;gap:10px}
+.ov-card h3 button{margin-left:auto;border:0;background:none;color:var(--sage);font-size:13px;cursor:pointer;font-family:"Gothic A1",sans-serif}
+.ov-card p{margin:4px 0;font-size:14px;font-weight:300;line-height:1.7}
+.ov-card p b{font-weight:500}
+.ov-card .big{font-size:26px;font-weight:700;letter-spacing:-.02em}
+.ov-card .big.bad{color:var(--clay)}
+.ov-card .big.good{color:var(--sage)}
+.ov-card ul{list-style:none;margin:8px 0 0;padding:0}
+.ov-card li{display:flex;gap:9px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--line);font-size:13.5px;line-height:1.55;font-weight:300}
+.ov-card li input{margin-top:3px;width:17px;height:17px;accent-color:var(--sage);flex:none}
+.ov-pipe{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.ov-pipe span{font-size:12px;border:1px solid var(--line);border-radius:100px;padding:2px 10px;color:var(--muted)}
+.ov-pipe span.on{border-color:var(--sage2);color:var(--sage)}
+.ov-pipe span b{margin-left:4px;font-weight:500;color:var(--ink)}
+.ov-wide{grid-column:1/-1}
+</style>
+<script>
+(function(){
+  "use strict";
+  function e3(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function fmt(n){ return Math.round(n).toLocaleString('ko-KR'); }
+  function $(s,r){ return (r||document).querySelector(s); }
+  function $$(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
+  function goTab(t){ var b=$('.tabs [data-tab="'+t+'"]'); if(b) b.click(); window.scrollTo({top:0}); }
+
+  /* ───────── 새 저장 데이터: 타임라인 담당, 입주 예정일 (공동 편집·버전·백업에 함께) ───────── */
+  function defUI(){ return {tlWho:{}, moveIn:''}; }
+  function normUI(x){ var d=defUI(); if(x&&typeof x==='object'){ if(x.tlWho&&typeof x.tlWho==='object') d.tlWho=x.tlWho; if(typeof x.moveIn==='string') d.moveIn=x.moveIn; } return d; }
+  var _d=window.defaults; window.defaults=function(){ var r=_d.apply(this,arguments); r.ui2=defUI(); return r; };
+  var _h=window.hydrate; window.hydrate=function(x){ var r=_h.apply(this,arguments); r.ui2=(x&&x.ui2)?normUI(x.ui2):((typeof st!=='undefined'&&st&&st.ui2)?st.ui2:defUI()); return r; };
+  var _c=window.compact; window.compact=function(){ var o=_c.apply(this,arguments); o.ui2=JSON.parse(JSON.stringify(st.ui2)); return o; };
+  try{ var raw=localStorage.getItem(KEY); st.ui2=normUI(raw?JSON.parse(raw).ui2:st.ui2); }catch(e){ st.ui2=normUI(st.ui2); }
+
+  var CORNER={hall:'예식장',studio:'스튜디오',dress:'드레스',makeup:'메이크업',record:'본식',attire:'예복·밴드·한복',family:'양가',honeymoon:'신혼여행',care:'개인 준비',etc:'예비비'};
+  var COLORS=['#5f7a5a','#86a07c','#b7c7a8','#d2bd8c','#c08a5e','#a66a52','#7b8d9b','#566d84','#9d9a92','#cfc8b8'];
+
+  /* ───────── 예산 ───────── */
+  var openCat={}, openRow={};
+  function catSum(c){ return c.items.reduce(function(s,i){ return s+amount(i); },0); }
+  function tidyDash(){
+    var d=document.getElementById('dashboard'); if(!d) return;
+    var m=$$(':scope > .metric',d); if(m.length<8) return;
+    var t=totals(), target=Number(st.s.target)||0, diff=t.total-target, over=diff>0;
+    var k3='<div class="kpi3"><div class="metric"><small>목표 예산 (만원)</small><strong>'+fmt(target)+'</strong></div>'
+      +'<div class="metric"><small>현재 계획 (만원)</small><strong>'+fmt(t.total)+'</strong></div>'
+      +'<div class="metric '+(over?'bad':'good')+'"><small>'+(over?'목표 초과':'목표 대비 여유')+' (만원)</small><strong>'+(over?'+':'')+fmt(Math.abs(diff))+'</strong></div></div>';
+    var cats=st.cats.map(function(c,i){ return {id:c.id,name:CORNER[c.id]||c.name,sum:catSum(c),i:i}; }).filter(function(c){return c.sum>0;});
+    var tot=cats.reduce(function(s,c){return s+c.sum;},0)||1;
+    var bar='<div class="cbar" role="img" aria-label="분류별 금액 비율">'+cats.map(function(c){ return '<span style="width:'+(c.sum/tot*100)+'%;background:'+COLORS[c.i%COLORS.length]+'" title="'+e3(c.name)+' '+fmt(c.sum)+'만원"></span>'; }).join('')+'</div>';
+    var leg='<div class="clegend">'+cats.slice().sort(function(a,b){return b.sum-a.sum;}).map(function(c){ return '<a href="#corner-'+c.id+'" data-cjump="'+c.id+'"><i style="background:'+COLORS[c.i%COLORS.length]+'"></i>'+e3(c.name)+' <b>'+fmt(c.sum)+'</b></a>'; }).join('')+'</div>';
+    var items=[]; st.cats.forEach(function(c){ c.items.forEach(function(i){ var a=amount(i); if(a>0) items.push({n:i.n,a:a,c:CORNER[c.id]||c.name}); }); });
+    items.sort(function(a,b){return b.a-a.a;});
+    var top='<p class="top5"><b>큰 항목 TOP 5</b>'+items.slice(0,5).map(function(x){ return '<span>'+e3(x.n.replace(/\s*\(.*\)/,''))+'<em>'+fmt(x.a)+'</em></span>'; }).join('')+'</p>';
+    var more='<details class="dash-more"><summary>자세히 보기 · 기본 / 추가 / 예비비 / 계약 / 납부</summary><div class="dash">'+m.slice(2).map(function(x){return x.outerHTML;}).join('')+'</div></details>';
+    d.className=''; d.innerHTML=k3+bar+leg+top+more;
+  }
+  var _rd=window.renderDashboard; window.renderDashboard=function(){ var r=_rd.apply(this,arguments); tidyDash(); return r; };
+
+  function tidyBudget(){
+    var pane=document.getElementById('pane-budget'); if(!pane) return;
+    /* 긴 설명은 한 군데로 접기 */
+    if(!$('.helpwrap',pane)){
+      var notes=$$(':scope > p.budget-note',pane).filter(function(p){return p.id!=='budget-balance';});
+      if(notes.length){ var dt=document.createElement('details'); dt.className='helpwrap'; dt.innerHTML='<summary>읽는 법 · 설명</summary>'+notes.map(function(p){return p.outerHTML;}).join(''); notes[0].parentNode.insertBefore(dt,notes[0]); notes.forEach(function(p){p.remove();}); }
+    }
+    /* 분류 접기 */
+    $$('.ledger-section',pane).forEach(function(sec){
+      var id=sec.dataset.category, c=st.cats.filter(function(x){return x.id===id;})[0];
+      sec.classList.toggle('open',!!openCat[id]);
+      var band=$('.catband',sec); if(!band||!c) return;
+      band.dataset.cat=id;
+      var live=c.items.filter(function(i){return !i.del&&(!i.role||i.role===st.s.mode)&&!i.off;});
+      var conf=live.filter(function(i){return i.act!=null&&i.act!=='';}).length;
+      var pr=$('.cprog',band); if(!pr){ pr=document.createElement('span'); pr.className='cprog'; var cnt=$('.cnt',band); (cnt?cnt.insertAdjacentElement('afterend',pr):band.appendChild(pr)); }
+      pr.textContent='확정 '+conf+'/'+live.length;
+    });
+    /* 바로가기 줄 */
+    var nav=$('.corner-nav',pane);
+    if(nav&&!$('.cornerbar',pane)){ nav.classList.add('cornerbar'); var b=document.createElement('button'); b.type='button'; b.className='btn'; b.dataset.callToggle='1'; nav.appendChild(b); }
+    var tb=$('[data-call-toggle]',pane); if(tb){ var all=$$('.ledger-section',pane).every(function(s){return s.classList.contains('open');}); tb.textContent=all?'전체 접기':'전체 펼치기'; }
+    /* 항목 한 줄: 설명·메모·결제는 '상세'에서 */
+    $$('.ledger tbody tr',pane).forEach(function(tr){
+      var memo=$('input.memo',tr); if(!memo) return;
+      var key=memo.dataset.ci+'-'+memo.dataset.ii;
+      var paid=$('.settlement input[data-ledger="paid"]',tr), due=$('.settlement input[type=date]',tr);
+      var has=!!(memo.value||(paid&&Number(paid.value)>0)||(due&&due.value));
+      var open=!!openRow[key];
+      tr.classList.toggle('row-open',open);
+      var td=tr.firstElementChild, b=$('.rowtog',td);
+      if(!b){ b=document.createElement('button'); b.type='button'; b.className='rowtog'; b.dataset.rowtog=key; var t0=$('.row-title',td); (t0&&t0.nextSibling)?td.insertBefore(b,t0.nextSibling):td.appendChild(b); }
+      b.classList.toggle('has',has);
+      b.textContent=(open?'상세 접기 ▴':'상세 ▾')+(has&&!open?' ●':'');
+    });
+  }
+  var _rb=window.renderBudget; window.renderBudget=function(){ var r=_rb.apply(this,arguments); tidyBudget(); return r; };
+
+  /* ───────── 타임라인 ───────── */
+  var openPh={};
+  function curPhase(){
+    var d=new Date((st.s.date||'')+'T00:00:00'), now=new Date(); now.setHours(0,0,0,0);
+    var ml=isNaN(d)?99:(d-now)/86400000/30.44, first=-1, begun=-1;
+    PHASES.forEach(function(ph,pi){
+      var all=ph.items.every(function(_,ii){ return st.done[pi+'-'+ii]; });
+      if(all) return; if(first<0) first=pi;
+      var started=ph.m[0]<0?ml<=0:(ph.m[0]===0?ml<=0.5:ml<=ph.m[0]);
+      if(started&&begun<0) begun=pi;
+    });
+    return begun>=0?begun:(first>=0?first:0);
+  }
+  function phaseWhen(pi){ var l=$$('.phase',$('#pane-timeline'))[pi]; var w=l&&$('.when',l); return w?w.textContent:''; }
+  function who(key){ return (st.ui2.tlWho||{})[key]||''; }
+  function whoLabels(){ return [(st.s.groom||'').trim()||'신랑',(st.s.bride||'').trim()||'신부','같이']; }
+  function nextWho(v){ var L=whoLabels(); var i=L.indexOf(v); return i<0?L[0]:(i+1<L.length?L[i+1]:''); }
+  function tidyTimeline(){
+    var pane=document.getElementById('pane-timeline'); if(!pane) return;
+    var cur=curPhase(), phs=$$('.phase',pane), hs=(window.hallSummary?window.hallSummary():null);
+    phs.forEach(function(ph,pi){
+      var P=PHASES[pi]; if(!P) return;
+      var all=P.items.every(function(_,ii){return st.done[pi+'-'+ii];});
+      ph.dataset.pi=pi; ph.classList.toggle('open',!!openPh[pi]); ph.classList.toggle('done-all',all);
+      $$('li',ph).forEach(function(li,ii){
+        var key=pi+'-'+ii, sp=$('span',li); if(!sp) return;
+        var w=who(key), b=document.createElement('button'); b.type='button'; b.className='tl-who'+(w?' set':''); b.dataset.who=key; b.textContent=w||'담당'; li.appendChild(b);
+        if(hs){
+          var txt=sp.textContent;
+          if(txt.indexOf('웨딩홀 3~5곳 투어')>=0){ var c=hs.counts; sp.insertAdjacentHTML('beforeend','<span class="tl-hint">투어 예약 '+c['투어 예약']+' · 완료 '+c['투어 완료']+' / '+hs.total+'곳</span>'); }
+          else if(txt.indexOf('웨딩홀 계약')===0){ sp.insertAdjacentHTML('beforeend','<span class="tl-hint">가계약 '+hs.counts['가계약']+'곳</span>'); }
+        }
+      });
+    });
+    var old=$('.tl-now',pane); if(old) old.remove(); old=$('.tl-strip',pane); if(old) old.remove();
+    var P=PHASES[cur], todo=[];
+    P.items.forEach(function(txt,ii){ if(!st.done[cur+'-'+ii]) todo.push({txt:txt,key:cur+'-'+ii,imp:txt.charAt(0)==='@'}); });
+    todo.sort(function(a,b){ return (b.imp?1:0)-(a.imp?1:0); });
+    var strip='<div class="tl-strip">'+PHASES.map(function(ph,pi){ var n=ph.items.length, dn=ph.items.filter(function(_,ii){return st.done[pi+'-'+ii];}).length; return '<button type="button" class="'+(pi===cur?'cur':'')+'" data-phjump="'+pi+'" title="'+e3(ph.t)+' '+dn+'/'+n+'"><i style="width:'+(dn/n*100)+'%"></i><span>'+e3(ph.t.replace(/\s/g,''))+'</span></button>'; }).join('')+'</div>';
+    var now='<div class="tl-now"><h3>지금 할 일<span class="when">'+e3(P.t)+' · '+e3(phaseWhen(cur))+'</span></h3>';
+    if(!todo.length) now+='<p style="font-size:14px;font-weight:300;margin:8px 0 0">이 단계는 모두 끝났어요. 아래에서 다음 단계를 펼쳐보세요.</p>';
+    else{ now+='<ul>'+todo.slice(0,5).map(function(x){ var w=who(x.key); return '<li><input type="checkbox" data-tl="'+x.key+'" aria-label="완료"><span>'+(x.imp?'<em>'+e3(x.txt.slice(1))+'</em>':e3(x.txt))+'</span>'+(w?'<span class="tl-who set" style="cursor:default">'+e3(w)+'</span>':'')+'</li>'; }).join('')+'</ul>';
+      if(todo.length>5) now+='<button type="button" class="more" data-phjump="'+cur+'">이 단계 남은 일 '+todo.length+'개 모두 보기 →</button>'; }
+    now+='</div>';
+    var note=$('.note',pane); var html=strip+now;
+    if(note) note.insertAdjacentHTML('afterend',html); else pane.insertAdjacentHTML('afterbegin',html);
+  }
+  var _rt=window.renderTimeline; window.renderTimeline=function(){ var r=_rt.apply(this,arguments); tidyTimeline(); return r; };
+
+  /* ───────── 혼수 · 신혼집 ───────── */
+  var HCATS=['appl','furn','bed','kit','move'], openHome={};
+  function ymd(d){ return d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate(); }
+  function tidyHome(){
+    var pane=document.getElementById('pane-home'); if(!pane) return;
+    $$('.dash .metric',pane).forEach(function(m){ if($('[data-hv="bought"]',m)) m.classList.add('hide'); });
+    var CN={appl:'가전',furn:'가구',bed:'침구 · 인테리어',kit:'주방 · 생활용품',move:'이사 · 입주'};
+    $$('details.hgroup',pane).forEach(function(g,gi){
+      var cid=HCATS[gi]; g.open=!!openHome[cid]; g.dataset.hcat=cid;
+      var its=st.home.items.filter(function(i){return i.c===cid&&i.on;});
+      var sm=$('summary',g), c=$('.hcount',sm); if(!c){ c=document.createElement('span'); c.className='hcount'; sm.appendChild(c); }
+      c.textContent=its.filter(function(i){return i.bought;}).length+'/'+its.length+' 구매';
+    });
+    if(!$('.h-moveIn',pane)){
+      var box=document.createElement('div'); box.className='h-moveIn'; var dash=$('.dash',pane);
+      box.innerHTML='<label>입주 예정일 <input type="date" data-move-in="1" value="'+e3(st.ui2.moveIn)+'"></label><span data-move-hint="1"></span>';
+      dash.insertAdjacentElement('afterend',box);
+    }
+    paintMove();
+  }
+  function paintMove(){
+    var el=$('[data-move-hint]'); if(!el) return; var v=st.ui2.moveIn, d=new Date(v+'T00:00:00');
+    if(!v||isNaN(d)){ el.innerHTML='입주일을 넣으면 가전·가구 주문 마감일이 계산돼요.'; return; }
+    function back(w){ var x=new Date(d); x.setDate(x.getDate()-7*w); return ymd(x); }
+    el.innerHTML='가전·가구는 늦어도 <b>'+back(8)+'</b>까지 주문 (납기 4~8주) · 이사업체는 <b>'+back(4)+'</b>까지 예약';
+  }
+  var _rh=window.renderHome; window.renderHome=function(){ var r=_rh.apply(this,arguments); tidyHome(); return r; };
+
+  /* ───────── 개요 ───────── */
+  function dday(){ var d=new Date((st.s.date||'')+'T00:00:00'), t=new Date(); t.setHours(0,0,0,0); if(isNaN(d)) return null; return Math.round((d-t)/86400000); }
+  function renderOverview(){
+    var pane=document.getElementById('pane-overview'); if(!pane) return;
+    var n=dday(), t=totals(), target=Number(st.s.target)||0, diff=t.total-target, over=diff>0;
+    var hs=window.hallSummary?window.hallSummary():null, cur=curPhase(), P=PHASES[cur], todo=[];
+    P.items.forEach(function(txt,ii){ if(!st.done[cur+'-'+ii]) todo.push({txt:txt,key:cur+'-'+ii,imp:txt.charAt(0)==='@'}); });
+    todo.sort(function(a,b){ return (b.imp?1:0)-(a.imp?1:0); });
+    var sums=0,bought=0,cnt=0,bc=0; (st.home.items||[]).forEach(function(i){ if(!i.on) return; var a=(i.act!==''&&i.act!=null)?(Number(i.act)||0):(Number(i.plan)||0); sums+=a; cnt++; if(i.bought){ bought+=a; bc++; } });
+    var ht=Number(st.home.target)||0;
+    var doneAll=0,totAll=0; PHASES.forEach(function(ph,pi){ ph.items.forEach(function(_,ii){ totAll++; if(st.done[pi+'-'+ii]) doneAll++; }); });
+    var h='<div class="ov-top"><b>'+(n==null?'':(n>0?'D-'+n:(n===0?'D-DAY':'D+'+(-n))))+'</b><span>'+e3((st.s.groom||'').trim()||'신랑')+' · '+e3((st.s.bride||'').trim()||'신부')+' · '+e3(st.s.date||'')+' · 하객 '+st.s.guests+'명</span></div><div class="ov-grid">';
+    h+='<div class="ov-card"><h3>예산<button type="button" data-ovgo="budget">열기 →</button></h3><p class="big '+(over?'bad':'good')+'">'+(over?'+':'')+fmt(Math.abs(diff))+'<span style="font-size:14px;font-weight:300"> 만원 '+(over?'목표 초과':'목표 대비 여유')+'</span></p><p>목표 <b>'+fmt(target)+'</b> · 현재 계획 <b>'+fmt(t.total)+'</b>만원</p><p>계약·확정 <b>'+fmt(t.contract)+'</b>만원 · 낸 금액 <b>'+fmt(t.paid)+'</b>만원</p></div>';
+    if(hs){
+      h+='<div class="ov-card"><h3>웨딩홀 투어<button type="button" data-ovgo="vendors">열기 →</button></h3><div class="ov-pipe">'+Object.keys(hs.counts).map(function(k){ return '<span class="'+(hs.counts[k]?'on':'')+'">'+e3(k)+'<b>'+hs.counts[k]+'</b></span>'; }).join('')+'</div>'
+        +'<p>'+(hs.next?'다음 투어 <b>'+e3(hs.next.name)+'</b> · '+e3(hs.next.date)+(hs.next.time?' '+e3(hs.next.time):''):'아직 잡힌 투어가 없어요. 플래너님께 가능 시간을 물어보세요.')+'</p>'+(hs.contract.length?'<p>가계약 <b>'+e3(hs.contract.join(', '))+'</b></p>':'')+'</div>';
+    }
+    h+='<div class="ov-card"><h3>혼수 · 신혼집<button type="button" data-ovgo="home">열기 →</button></h3><p class="big">'+fmt(sums)+'<span style="font-size:14px;font-weight:300"> 만원 계획</span></p><p>'+(ht>0?'목표 <b>'+fmt(ht)+'</b>만원 · '+(sums>ht?'<b>'+fmt(sums-ht)+'</b> 초과':'<b>'+fmt(ht-sums)+'</b> 여유'):'혼수 목표 예산을 아직 입력하지 않았어요')+'</p><p>구매 <b>'+bc+'/'+cnt+'</b>'+(st.ui2.moveIn?' · 입주 '+e3(st.ui2.moveIn):' · 입주일 미정')+'</p></div>';
+    h+='<div class="ov-card ov-wide"><h3>지금 할 일<button type="button" data-ovgo="timeline">타임라인 →</button></h3><p style="color:var(--muted)">'+e3(P.t)+' 단계 · 전체 '+doneAll+'/'+totAll+' 완료</p>';
+    h+=todo.length?'<ul>'+todo.slice(0,4).map(function(x){ return '<li><input type="checkbox" data-tl="'+x.key+'" data-ovtl="1" aria-label="완료"><span>'+(x.imp?'<b>'+e3(x.txt.slice(1))+'</b>':e3(x.txt))+'</span></li>'; }).join('')+'</ul>':'<p>이 단계는 모두 끝났어요.</p>';
+    h+='</div></div>';
+    pane.innerHTML=h;
+  }
+
+  /* ───────── 이벤트 ───────── */
+  document.addEventListener('click',function(e){
+    var t=e.target; if(!t||!t.closest) return;
+    var band=t.closest('.ledger-section > .catband');
+    if(band&&band.dataset.cat){ var sec=band.parentNode, id=band.dataset.cat; openCat[id]=!sec.classList.contains('open'); sec.classList.toggle('open',openCat[id]); var tb=$('[data-call-toggle]'); if(tb){ var all=$$('.ledger-section').every(function(s){return s.classList.contains('open');}); tb.textContent=all?'전체 접기':'전체 펼치기'; } return; }
+    var rt=t.closest('[data-rowtog]');
+    if(rt){ var k=rt.dataset.rowtog; openRow[k]=!openRow[k]; var tr=rt.closest('tr'); tr.classList.toggle('row-open',openRow[k]); var memo=$('input.memo',tr), paid=$('.settlement input[data-ledger="paid"]',tr), due=$('.settlement input[type=date]',tr); var has=!!(memo&&memo.value||(paid&&Number(paid.value)>0)||(due&&due.value)); rt.classList.toggle('has',has); rt.textContent=(openRow[k]?'상세 접기 ▴':'상세 ▾')+(has&&!openRow[k]?' ●':''); return; }
+    var cj=t.closest('[data-cjump]');
+    if(cj){ e.preventDefault(); var id2=cj.dataset.cjump; openCat[id2]=true; var s2=document.getElementById('corner-'+id2); if(s2){ s2.classList.add('open'); s2.scrollIntoView({behavior:'smooth',block:'start'}); } return; }
+    var nv=t.closest('.corner-nav a');
+    if(nv){ e.preventDefault(); var id3=(nv.getAttribute('href')||'').replace('#corner-',''); openCat[id3]=true; var s3=document.getElementById('corner-'+id3); if(s3){ s3.classList.add('open'); s3.scrollIntoView({behavior:'smooth',block:'start'}); } return; }
+    var ca=t.closest('[data-call-toggle]');
+    if(ca){ var secs=$$('.ledger-section'), allOpen=secs.every(function(s){return s.classList.contains('open');}); secs.forEach(function(s){ openCat[s.dataset.category]=!allOpen; s.classList.toggle('open',!allOpen); }); ca.textContent=allOpen?'전체 펼치기':'전체 접기'; return; }
+    var ph=t.closest('.phase > h3');
+    if(ph){ var pe=ph.parentNode, pi=+pe.dataset.pi; openPh[pi]=!pe.classList.contains('open'); pe.classList.toggle('open',openPh[pi]); return; }
+    var pj=t.closest('[data-phjump]');
+    if(pj){ var pi2=+pj.dataset.phjump; openPh[pi2]=true; var pe2=$$('.phase',$('#pane-timeline'))[pi2]; if(pe2){ pe2.classList.add('open'); pe2.scrollIntoView({behavior:'smooth',block:'start'}); } return; }
+    var wb=t.closest('[data-who]');
+    if(wb){ var key=wb.dataset.who; var nw=nextWho(who(key)); if(nw) st.ui2.tlWho[key]=nw; else delete st.ui2.tlWho[key]; save(); wb.textContent=nw||'담당'; wb.classList.toggle('set',!!nw); return; }
+    var hg=t.closest('details.hgroup > summary');
+    if(hg){ var g=hg.parentNode; setTimeout(function(){ openHome[g.dataset.hcat]=g.open; },0); return; }
+    var og=t.closest('[data-ovgo]');
+    if(og){ goTab(og.dataset.ovgo); return; }
+  });
+  document.addEventListener('change',function(e){
+    var t=e.target;
+    if(t.dataset&&t.dataset.moveIn){ st.ui2.moveIn=t.value; save(); paintMove(); return; }
+    if(t.dataset&&t.dataset.h==='bought'){ setTimeout(tidyHome,0); }
+    if(t.dataset&&t.dataset.ovtl){ setTimeout(renderOverview,0); }
+  });
+
+  /* ───────── 개요 탭 추가 ───────── */
+  var nav=$('.tabs'), main=$('main.wrap');
+  var ob=document.createElement('button'); ob.setAttribute('role','tab'); ob.dataset.tab='overview'; ob.setAttribute('aria-selected','false'); ob.textContent='개요';
+  nav.insertBefore(ob,nav.firstChild);
+  var op=document.createElement('section'); op.className='pane'; op.id='pane-overview'; op.hidden=true; main.insertBefore(op,main.firstChild);
+  $$('.tabs button').forEach(function(b){ b.addEventListener('click',function(){ op.hidden=(b.dataset.tab!=='overview'); if(b.dataset.tab==='overview') renderOverview(); }); });
+
+  /* 이미 그려진 화면에 적용 */
+  try{ window.renderBudget(); }catch(e){}
+  try{ window.renderHome(); }catch(e){}
+  try{ window.renderTimeline(); }catch(e){}
+  ob.click();
 })();
 </script>
 </body>

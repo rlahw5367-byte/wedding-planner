@@ -2393,7 +2393,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
     o.ui2.vm=1; return true;
   }
   var _d=window.defaults; window.defaults=function(){ var r=_d.apply(this,arguments); var f=fresh(); r.vendors.studio=f.studio; r.vendors.dress=f.dress; r.vendors.makeup=f.makeup; if(r.ui2) r.ui2.vm=1; return r; };
-  var _h=window.hydrate; window.hydrate=function(){ var r=_h.apply(this,arguments); if(migrate(r)) setTimeout(function(){ try{ save(); }catch(e){} },400); return r; };
+  var _h=window.hydrate; window.hydrate=function(x){ var r=_h.apply(this,arguments); if(!(x&&x.ui2&&x.ui2.vm===1)&&r.ui2){ r.ui2=JSON.parse(JSON.stringify(r.ui2)); r.ui2.vm=0; } if(migrate(r)) setTimeout(function(){ try{ save(); }catch(e){} },400); return r; };
   try{ var had=st.ui2&&st.ui2.vm===1; migrate(st); if(!had){ save(); } }catch(e){}
 
   var NOTES={

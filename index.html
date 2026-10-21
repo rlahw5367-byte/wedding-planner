@@ -1637,7 +1637,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .hc-status[data-s="제외"]{color:var(--muted)}
 .hc-status[data-s="가계약"]{background:var(--sage);color:var(--paper);border-color:var(--sage)}
 
-.hc-photos{display:flex;gap:6px;overflow-x:auto;padding:0 18px 4px;scroll-snap-type:x proximity;scrollbar-width:thin}
+.hc-photos{display:flex;gap:6px;overflow-x:auto;padding:0 18px 4px;scroll-padding:0 18px;scroll-snap-type:x proximity;scrollbar-width:thin}
 .hc-photos button{flex:none;position:relative;width:228px;height:152px;border:0;padding:0;border-radius:5px;overflow:hidden;cursor:zoom-in;background:var(--soft);scroll-snap-align:start}
 .hc-photos button:first-child{width:300px}
 .hc-photos img{width:100%;height:100%;object-fit:cover;display:block}
@@ -1645,7 +1645,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .hc-src{padding:4px 18px 0;font-size:11px;font-weight:300;color:var(--muted)}
 .hc-src a{color:var(--muted)}
 
-.hc-body{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:4px 28px;padding:14px 18px 18px}
+.hc-body{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);grid-template-areas:"a b" "c b";align-items:start;gap:14px 28px;padding:14px 18px 18px}
+.hc-a{grid-area:a}.hc-b{grid-area:b}.hc-c{grid-area:c}
 .hc-body h4{font-size:12px;font-weight:500;color:var(--sage);margin:14px 0 6px;letter-spacing:.02em}
 .hc-body h4:first-child{margin-top:0}
 .hc-why{font-size:13.5px;font-weight:300;line-height:1.75;margin:0}
@@ -1691,7 +1692,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 #htBox .bn{right:10px;top:50%;transform:translateY(-50%)}
 
 @media (max-width:760px){
-  .hc-body{grid-template-columns:1fr}
+  .hc-body{grid-template-columns:1fr;grid-template-areas:"a" "b" "c"}
   .hc-photos button{width:200px;height:136px}
   .hc-photos button:first-child{width:250px}
   .hc-top h3{font-size:27px}
@@ -1823,11 +1824,11 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
     t+='<div class="hc-score"><b>'+e2(h.total)+'</b><small> / 50</small></div></div>';
     t+='<div class="hc-photos" role="list">'+h.photos.map(function(p,i){ return '<button type="button" role="listitem" data-hb-ph="'+h.id+':'+i+'" aria-label="'+e2(h.name+' '+p.c)+' 크게 보기"><img src="'+e2(p.s)+'" alt="'+e2(h.name+' '+p.c)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=\'none\'"><span>'+e2(p.c)+'</span></button>'; }).join('')+'</div>';
     t+='<p class="hc-src">사진 출처: <a href="'+e2(h.home)+'" target="_blank" rel="noopener">'+e2(h.homeLabel)+'</a> 공식 홈페이지'+(h.photoNote?' · '+e2(h.photoNote):'')+'</p>';
-    t+='<div class="hc-body"><div>';
+    t+='<div class="hc-body"><div class="hc-a">';
     t+='<h4>두 분 점수 · 이유</h4><p class="hc-why">'+e2(h.why)+'</p><div class="hc-scores">'+h.sc.map(function(v,i){return SC_LABELS[i]+' <b>'+v+((h.scMark||{})[i]||'')+'</b>';}).join('')+'</div>';
-    t+='<h4>기본 정보</h4><dl class="hc-facts"><dt>교통</dt><dd>'+e2(h.subway)+'</dd><dt>주차</dt><dd>'+e2(h.parking)+'</dd><dt>홀</dt><dd>'+e2(h.seats)+'</dd><dt>예식 간격</dt><dd>'+e2(h.gap)+'</dd><dt>대관료</dt><dd>'+fm(h.rent)+'만원</dd><dt>식대</dt><dd>1인 '+h.meal+'만원 · '+e2(h.mealNote)+'</dd><dt>주소</dt><dd>'+e2(h.addr)+'</dd></dl>';
+    t+='</div><div class="hc-c"><h4>기본 정보</h4><dl class="hc-facts"><dt>교통</dt><dd>'+e2(h.subway)+'</dd><dt>주차</dt><dd>'+e2(h.parking)+'</dd><dt>홀</dt><dd>'+e2(h.seats)+'</dd><dt>예식 간격</dt><dd>'+e2(h.gap)+'</dd><dt>대관료</dt><dd>'+fm(h.rent)+'만원</dd><dt>식대</dt><dd>1인 '+h.meal+'만원 · '+e2(h.mealNote)+'</dd><dt>주소</dt><dd>'+e2(h.addr)+'</dd></dl>';
     t+='<h4>현장에서 확인할 것</h4><ul class="hc-checks">'+h.checks.map(function(c,i){ var on=!!it.chk[i]; return '<li class="'+(on?'done':'')+'"><input type="checkbox" data-hb-chk="'+i+'" '+(on?'checked':'')+' aria-label="확인함"><span>'+e2(c)+'</span></li>'; }).join('')+'</ul>';
-    t+='</div><div>';
+    t+='</div><div class="hc-b">';
     t+='<h4>시간대별 예상 (대관료 + 식대, 하객 '+guests()+'명)</h4><table class="hc-slots"><thead><tr><th>시간대</th><th class="n">보증</th><th class="n">예상</th><th class="n">플래너 답변</th></tr></thead><tbody>';
     h.slots.forEach(function(s,i){ var c=slotCost(h,s), v=it.av[i]||'미확인';
       t+='<tr class="'+(i===sel?'sel':'')+'"><td><label><input type="radio" name="slot-'+h.id+'" data-hb-slot="'+i+'" '+(i===sel?'checked':'')+'>'+e2(s.t)+'</label></td><td class="n">'+s.g+'명</td><td class="n'+(c>base?' hi':'')+'">'+fm(c)+'만</td><td class="n"><button type="button" class="av" data-hb-av="'+i+'" data-v="'+v+'">'+v+'</button></td></tr>'; });

@@ -689,7 +689,7 @@ const VGROUPS = [
  {k:"hall",   t:"웨딩홀",          c:["업체명","투어일","대관료","식대/인","보증인원·포함 항목"]},
  {k:"studio", t:"스튜디오",        c:["업체명","상담일","패키지가","추가금 요약","메모"]},
  {k:"makeup", t:"메이크업",        c:["업체명","상담일","기본가","얼리·변형·지정비","메모"]},
- {k:"dress",  t:"드레스샵",        c:["업체명","투어일","피팅비","추가금 구간","메모"]},
+ {k:"dress",  t:"드레스샵",        c:["업체명","투어일","패키지가","추가금·헬퍼비","메모"]},
  {k:"snap",   t:"본식 스냅 · 영상", c:["업체명","문의일","견적","인원·납품기간","메모"]}
 ];
 
@@ -2119,8 +2119,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   function goTab(t){ var b=$('.tabs [data-tab="'+t+'"]'); if(b) b.click(); window.scrollTo({top:0}); }
 
   /* ───────── 새 저장 데이터: 타임라인 담당, 입주 예정일 (공동 편집·버전·백업에 함께) ───────── */
-  function defUI(){ return {tlWho:{}, moveIn:''}; }
-  function normUI(x){ var d=defUI(); if(x&&typeof x==='object'){ if(x.tlWho&&typeof x.tlWho==='object') d.tlWho=x.tlWho; if(typeof x.moveIn==='string') d.moveIn=x.moveIn; } return d; }
+  function defUI(){ return {tlWho:{}, moveIn:'', vm:0}; }
+  function normUI(x){ var d=defUI(); if(x&&typeof x==='object'){ if(x.tlWho&&typeof x.tlWho==='object') d.tlWho=x.tlWho; if(typeof x.moveIn==='string') d.moveIn=x.moveIn; if(x.vm===1) d.vm=1; } return d; }
   var _d=window.defaults; window.defaults=function(){ var r=_d.apply(this,arguments); r.ui2=defUI(); return r; };
   var _h=window.hydrate; window.hydrate=function(x){ var r=_h.apply(this,arguments); r.ui2=(x&&x.ui2)?normUI(x.ui2):((typeof st!=='undefined'&&st&&st.ui2)?st.ui2:defUI()); return r; };
   var _c=window.compact; window.compact=function(){ var o=_c.apply(this,arguments); o.ui2=JSON.parse(JSON.stringify(st.ui2)); return o; };
@@ -2333,6 +2333,165 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   try{ window.renderHome(); }catch(e){}
   try{ window.renderTimeline(); }catch(e){}
   ob.click();
+})();
+</script>
+<style id="vendor-notes">
+.vnotes{margin:34px 0 0}
+.vnotes details{border:1px solid var(--line);border-radius:12px;background:var(--soft);margin:10px 0;padding:0 16px}
+.vnotes summary{cursor:pointer;padding:14px 0;font-size:15px;font-weight:500;list-style:none}
+.vnotes summary::-webkit-details-marker{display:none}
+.vnotes summary::after{content:"＋";float:right;color:var(--muted)}
+.vnotes details[open] summary::after{content:"－"}
+.vnotes h4{margin:16px 0 6px;font-size:14px}
+.vnotes ul{margin:0 0 10px;padding-left:18px;font-size:13.5px;line-height:1.7}
+.vnotes p.vn-s{font-size:12.5px;color:var(--muted);line-height:1.6;margin:6px 0 14px}
+.vnotes .btn{margin:4px 0 14px}
+</style>
+<script>
+(function(){
+  var OLD_DRESS_LABELS=true;
+  function row(n,p1,p2,memo){ return {n:n,p1:p1||'',p2:p2||'',memo:memo||''}; }
+  function fresh(){
+    return {
+      studio:[
+        row('이브로제하우스 A타입','200','의상·시간 추가 불가 · 야간 제외 · 로드 추가 불가','오전 · 4시간 · 의상 3벌 · 앨범 20p · 액자 · 원본/수정본'),
+        row('이브로제하우스 B타입','230','로드 촬영 22만 별도 · 야간 제외','5시간 · 의상 4벌 · 앨범/액자/원본·수정본'),
+        row('글렌하우스','165','로드 22만 별도 · 야간 불가','오전 · 드레스 4벌 + 개인 의상 1벌 · 앨범/액자/원본·수정본 · 모바일 선수정 7컷'),
+        row('피아스튜디오(fia)','165','시간·의상 수가 계약서에 없음 → 서면 확인','앨범 20p · 액자 · 원본/수정본 · 옥상 촬영 포함')
+      ],
+      dress:[
+        row('아뜰리에로리에','198','헬퍼비·피팅비 별도(확인 필요)','내 계약서 · 촬영 3벌 + 본식 1벌 · 장식·베일 포함'),
+        row('로즈로사','214','헬퍼비·피팅비 별도(확인 필요)','내 계약서 · 촬영 3벌 + 본식 1벌 · 장식·베일 포함'),
+        row('우아르','121','내 계약서 아님','베리굿웨딩 2026-05-27 공개 자료 · 촬영 + 본식'),
+        row('루이즈블랑','139~165','내 계약서 아님','같은 날짜·대행사의 공개 가격 범위')
+      ],
+      makeup:[ row('애브뉴준오','','가격·추가금 미확인','계약서에 있는 업체 · 다른 업체는 아직 안 알아봄') ]
+    };
+  }
+  function blank(r){ return !(r.n||r.date||r.p1||r.p2||r.memo||r.rate); }
+  function migrate(o){
+    if(!o||!o.vendors||!o.ui2||o.ui2.vm===1) return;
+    var f=fresh();
+    Object.keys(f).forEach(function(k){
+      var cur=Array.isArray(o.vendors[k])?o.vendors[k]:[];
+      var keep=[];
+      cur.forEach(function(r){ if(!r) return; if(blank(r)) return; if(!r.del) r.del=true; keep.push(r); });
+      var names={}; keep.forEach(function(r){ if(!r.del) names[r.n]=1; });
+      var add=f[k].filter(function(r){ return !names[r.n]; });
+      o.vendors[k]=add.concat(keep);
+    });
+    o.ui2.vm=1;
+  }
+  var _d=window.defaults; window.defaults=function(){ var r=_d.apply(this,arguments); var f=fresh(); r.vendors.studio=f.studio; r.vendors.dress=f.dress; r.vendors.makeup=f.makeup; if(r.ui2) r.ui2.vm=1; return r; };
+  var _h=window.hydrate; window.hydrate=function(){ var r=_h.apply(this,arguments); migrate(r); return r; };
+  try{ var had=st.ui2&&st.ui2.vm===1; migrate(st); if(!had){ save(); } }catch(e){}
+
+  var NOTES={
+    studio:'<h4>공통 — 먼저 알아둘 것</h4><ul>'+
+      '<li>작가별 후기는 블로그·후기 사이트에서 <b>작가 이름이 확인된 것만</b> 적었습니다. 네이버 블로그 본문은 열어볼 수 없어 제목·요약문 기준입니다.</li>'+
+      '<li>후기에 <b>지점(서울/타지점)이 적혀 있지 않은 경우가 많아</b> 서울 지점 소속인지는 확인하지 못했습니다. 플래너에게 "서울 지점 배정 작가"로 물어보세요.</li>'+
+      '<li>후기 플랫폼은 긍정 후기가 많고 일부는 2022년 이전 글입니다. 가격·조건은 내 계약서가 기준입니다.</li></ul>'+
+      '<h4>이브로제하우스</h4><ul>'+
+      '<li>후기에 나온 작가: 양재훈·장아연(2026.4, C타입), 김찬녕(2024.9), 정은아(2025.9)</li>'+
+      '<li>"인물 위주라 표정이 중요해 난이도가 높을 수 있다"는 후기(2025.9)가 있습니다. 시안의 쨍한 느낌을 보고 고른 사람이 많습니다.</li>'+
+      '<li>아이웨딩 후기 한 건: "비싸지만 후회 없다, 작가님 디렉션이 좋았다"</li>'+
+      '<li>내 A타입(4시간·3벌)은 의상·시간 추가가 안 됩니다. 후기에서 5시간·5벌은 C타입이었습니다.</li></ul>'+
+      '<h4>글렌하우스</h4><ul>'+
+      '<li>후기에 나온 작가: 민경훈(2025.8·9), 이보람(2026.3), 이동석(2024.8), 김건희(2024.7)</li>'+
+      '<li>그리너리하고 인물 중심이라는 평이 많습니다.</li>'+
+      '<li>아이웨딩 후기 한 건: "작가에 따라 결과물 만족도가 달라지는 것 같아 걱정했다"</li>'+
+      '<li>이보람 작가 후기(2026.3): 스튜디오가 정신없이 돌아가서 드레스·헤어·예시 사진과 똑같이 재현되지는 않았다고 합니다.</li></ul>'+
+      '<h4>피아스튜디오</h4><ul>'+
+      '<li>후기에 나온 작가: 백인준·신승엽(유명하다는 언급, 예약 오픈날 바로 예약했다는 후기), 전계호(2022), 송미서</li>'+
+      '<li>"작가님마다 스타일이 달라 원하는 작가의 사진 스타일을 미리 알아보고 가야 한다"(2024.3)</li>'+
+      '<li>내 계약서에는 시간·의상 수가 없습니다. 후기에는 5시간 촬영이라는 글도 있지만 내 계약 조건과 같다는 보장은 없습니다.</li></ul>'+
+      '<h4>유의사항</h4><ul>'+
+      '<li><b>캡처 장면 = 분위기 참고</b>로 합의하세요. 같은 사진을 그대로 재현한다는 약속은 어렵습니다(글렌 후기 참고).</li>'+
+      '<li>촬영 후 장면·소품·보정이 추가금으로 붙는지 사진별로 서면 확인.</li>'+
+      '<li>로드(야외) 촬영은 이브로제 B·글렌 모두 22만원 별도, 야간은 제외입니다.</li>'+
+      '<li>작가 지정이 되는지, 지정비가 있는지, 못 정하면 배정 결과를 언제 알려주는지 확인.</li>'+
+      '<li>헤어변형·헬퍼비는 스튜디오 가격에 포함되지 않는 경우가 많습니다(드레스샵 요금과 합산해서 비교).</li></ul>',
+    dress:'<h4>공통 — 먼저 알아둘 것</h4><ul>'+
+      '<li>후기는 구글 검색에 보이는 블로그·웨딩북·아이웨딩 요약문 기준입니다. 본문 전체를 읽은 것은 아닙니다.</li>'+
+      '<li>플랫폼 후기는 긍정 쪽으로 치우치기 쉽고, 일부는 2018~2022년 글입니다.</li>'+
+      '<li>후기에서 헬퍼비 약 20만원, 피팅비 5~5.5만원이 별도로 언급됩니다. 아이웨딩 안내에서는 헬퍼비 25만(촬영)+25만(본식), 피팅비 5.5만, 라벨 업그레이드 추가금이 확인되는데 샵별로 다를 수 있으니 내 계약서와 대조하세요.</li></ul>'+
+      '<h4>아뜰리에로리에 (198만)</h4><ul>'+
+      '<li>좋은 평: 공주풍·클래식 드레스가 많다, 지퍼 가봉이라 본식날 핏이 좋다, 당일 혜택이 투어 샵 중 가장 좋았다(2022)</li>'+
+      '<li>아쉬운 평: 추가금이 많이 나올 것 같아 포기한 후기, 카드 결제 시 피팅비 5.5만원을 받았다는 후기(2022.8)</li>'+
+      '<li>아이웨딩 상품: 촬영용 컬러 1벌 + 애프터 1벌 무료(당일 결정 또는 지정 예약 시), 애프터 피팅비·헬퍼비는 별도</li></ul>'+
+      '<h4>로즈로사 (214만)</h4><ul>'+
+      '<li>좋은 평: 미카도·실크 드레스가 예쁘다, 귀엽고 발랄한 분위기, 세미 풍성 라인(2023~2025 후기)</li>'+
+      '<li>아쉬운 평: 인스타그램 사진과 달리 미색이 섞인 드레스라는 설명에 당황했다(2025.3), 계란후라이컷은 불가한 드레스가 있다(2023.12)</li>'+
+      '<li>가격이 로리에보다 16만원 높습니다. 같은 구성이니 차이가 무엇인지(드레스 등급·베일·피팅 횟수) 확인하세요.</li></ul>'+
+      '<h4>우아르 (121만, 공개 자료)</h4><ul>'+
+      '<li>좋은 평: "가성비 좋은 실크 드레스 맛집"(2024.5), 원단이 부드럽고 치밀하다(2023), 신상도 변형 가능(2025.12)</li>'+
+      '<li>아쉬운 평: 드레스 취향을 모르는 상태로 첫 샵에서 입어 아쉬웠다는 후기(2024.11) — 샵 문제라기보다 투어 순서 이야기입니다.</li>'+
+      '<li>121만원은 내 계약서가 아니라 공개 자료입니다. 같은 구성인지(촬영 3벌+본식 1벌, 장식·베일 포함) 먼저 확인하세요.</li></ul>'+
+      '<h4>루이즈블랑 (139~165만, 공개 자료)</h4><ul>'+
+      '<li>좋은 평: 가족 3명의 원픽이 모두 있던 유일한 샵(2020), 체형 커버용 슬림·풍성 라인이 다양하다는 후기, 본식 가봉 후기 다수</li>'+
+      '<li>아쉬운 평: 풍성 드레스가 막상 입으면 안 어울렸다는 개인 후기(2024.6) — 취향 문제</li>'+
+      '<li>가격 폭이 큽니다(139~165). 어느 구성이 어느 가격인지 확인하세요.</li></ul>'+
+      '<h4>비교할 때</h4><ul>'+
+      '<li>패키지가 + 헬퍼비(촬영·본식) + 피팅비 + 라벨 업그레이드 + 애프터 피팅으로 줄을 세워야 실제 가격이 나옵니다.</li>'+
+      '<li>투어는 드레스 취향이 잡힌 뒤에 가는 편이 후기 만족도가 높았습니다.</li></ul>',
+    ask:null
+  };
+  var ASK=[
+    ['스튜디오 · 캡처 느낌 (200만원 선 가능 여부)',[
+      '① 담장·거울 장면이 이브로제 A타입(200만원)에 포함되는지',
+      '② 촛불 장면을 낮(오전) 촬영에서 할 수 있는지',
+      '③ 원하는 장면들을 4시간·3벌 안에서 모두 진행할 수 있는지',
+      '④ 장면·소품·보정 추가금을 사진(장면)별로 알려주실 수 있는지']],
+    ['스튜디오 · 계약 조건',[
+      '이브로제하우스 서울 지점이 맞는지, 담당 작가 지정 방식과 지정비',
+      '200만원의 최종 금액(부가세·수수료 포함 여부)과 촬영 가능한 날짜',
+      '로드(야외) 22만원이 필요한지, 옥상·실내만으로 충분한지',
+      '앨범·액자 추가 구성 가격, 원본 전체 제공 여부',
+      '피아스튜디오는 촬영 시간·의상 수·작가 지정을 서면에 적을 수 있는지',
+      '날짜 변경·취소 위약 규정']],
+    ['드레스 · 메이크업',[
+      '아뜰리에로리에·로즈로사의 헬퍼비(촬영·본식)·피팅비·라벨 업그레이드 추가금',
+      '촬영 3벌 + 본식 1벌 외에 의상을 늘릴 때와 애프터 피팅 비용',
+      '두 샵 가격 차이(16만원)가 무엇에서 나는지',
+      '애브뉴준오: 기본가, 얼리·헤어변형·지정비, 신랑 포함 여부, 촬영·본식 출장 가능 여부']],
+    ['전체 정리',[
+      '스드메 총액과 확정 추가금을 한 장 견적서로 받을 수 있는지',
+      '추가금이 생기는 항목은 계약서 또는 카톡으로 금액을 남겨주실 수 있는지']]
+  ];
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function askHTML(){
+    var h='<p class="vn-s">플래너에게 보낼 질문입니다. 아래 버튼을 누르면 메시지로 복사됩니다.</p>';
+    ASK.forEach(function(g){ h+='<h4>'+esc(g[0])+'</h4><ul>'+g[1].map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>'; });
+    h+='<button type="button" class="btn key" data-vn-copy="1">플래너 문의 메시지 복사</button>';
+    return h;
+  }
+  function msg(){
+    var m='안녕하세요, 스튜디오·드레스 관련해서 확인하고 싶은 내용이 있어 문의드립니다.\n\n원하는 촬영 분위기는 보내드린 참고 사진과 같은 느낌이고, 이브로제하우스 A타입(200만원) 안에서 가능한지 궁금합니다.\n';
+    ASK.forEach(function(g){ m+='\n['+g[0]+']\n'+g[1].map(function(x){return '- '+x;}).join('\n')+'\n'; });
+    m+='\n답변은 문자나 카톡으로 남겨주시면 감사하겠습니다.';
+    return m;
+  }
+  function copyText(txt){
+    function fb(){ var ta=document.createElement('textarea'); ta.value=txt; ta.style.cssText='position:fixed;left:-9999px'; document.body.appendChild(ta); ta.select(); var ok=false; try{ ok=document.execCommand('copy'); }catch(e){} ta.remove(); toast(ok?'문의 메시지를 복사했어요':'복사에 실패했어요. 직접 선택해서 복사해 주세요'); }
+    if(navigator.clipboard&&window.isSecureContext){ navigator.clipboard.writeText(txt).then(function(){ toast('문의 메시지를 복사했어요'); }, fb); } else fb();
+  }
+  var _rv=window.renderVendors;
+  window.renderVendors=function(){
+    _rv.apply(this,arguments);
+    var pane=document.getElementById('pane-vendors'); if(!pane) return;
+    var wrap=document.createElement('div'); wrap.className='vnotes'; wrap.id='vnotes';
+    wrap.innerHTML='<div class="catband"><h2>조사 메모 · 플래너 확인</h2></div>'+
+      '<details><summary>스튜디오 — 작가별 후기와 유의사항</summary>'+NOTES.studio+'</details>'+
+      '<details><summary>드레스 — 퀄리티·후기</summary>'+NOTES.dress+'</details>'+
+      '<details><summary>플래너에게 확인할 것</summary>'+askHTML()+'</details>';
+    var tr=pane.querySelector('details.trash'); if(tr) pane.insertBefore(wrap,tr); else pane.appendChild(wrap);
+  };
+  document.getElementById('pane-vendors').addEventListener('click',function(e){ var b=e.target.closest('[data-vn-copy]'); if(b) copyText(msg()); });
+  if(typeof QUESTIONS!=='undefined' && !QUESTIONS.some(function(g){return g.t==='스튜디오·드레스 계약 전 플래너에게';})){
+    var items=[]; ASK.forEach(function(g){ g[1].forEach(function(x){ items.push([x,'']); }); });
+    QUESTIONS.push({t:'스튜디오·드레스 계약 전 플래너에게', items:items});
+  }
+  try{ if(document.getElementById('pane-vendors') && !document.getElementById('pane-vendors').hidden) renderVendors(); else renderVendors(); }catch(e){}
 })();
 </script>
 </body>

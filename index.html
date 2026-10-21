@@ -2119,8 +2119,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   function goTab(t){ var b=$('.tabs [data-tab="'+t+'"]'); if(b) b.click(); window.scrollTo({top:0}); }
 
   /* ───────── 새 저장 데이터: 타임라인 담당, 입주 예정일 (공동 편집·버전·백업에 함께) ───────── */
-  function defUI(){ return {tlWho:{}, moveIn:'', vm:0}; }
-  function normUI(x){ var d=defUI(); if(x&&typeof x==='object'){ if(x.tlWho&&typeof x.tlWho==='object') d.tlWho=x.tlWho; if(typeof x.moveIn==='string') d.moveIn=x.moveIn; if(x.vm===1) d.vm=1; } return d; }
+  function defUI(){ return {tlWho:{}, moveIn:'', vm:0, sdm:{s:'',d:'',m:''}}; }
+  function normUI(x){ var d=defUI(); if(x&&typeof x==='object'){ if(x.tlWho&&typeof x.tlWho==='object') d.tlWho=x.tlWho; if(typeof x.moveIn==='string') d.moveIn=x.moveIn; if(x.vm===1) d.vm=1; if(x.sdm&&typeof x.sdm==='object'){ ['s','d','m'].forEach(function(k){ if(typeof x.sdm[k]==='string') d.sdm[k]=x.sdm[k]; }); } } return d; }
   var _d=window.defaults; window.defaults=function(){ var r=_d.apply(this,arguments); r.ui2=defUI(); return r; };
   var _h=window.hydrate; window.hydrate=function(x){ var r=_h.apply(this,arguments); r.ui2=(x&&x.ui2)?normUI(x.ui2):((typeof st!=='undefined'&&st&&st.ui2)?st.ui2:defUI()); return r; };
   var _c=window.compact; window.compact=function(){ var o=_c.apply(this,arguments); o.ui2=JSON.parse(JSON.stringify(st.ui2)); return o; };
@@ -2346,6 +2346,10 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .vnotes ul{margin:0 0 10px;padding-left:18px;font-size:13.5px;line-height:1.7}
 .vnotes p.vn-s{font-size:12.5px;color:var(--muted);line-height:1.6;margin:6px 0 14px}
 .vnotes .btn{margin:4px 0 14px}
+.sdm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 18px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--soft);font-size:13.5px}
+.sdm select{font:inherit;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;max-width:100%;min-width:0;flex:1 1 130px}
+.sdm .sdt{flex:1 1 100%;font-weight:500;font-size:15px}
+.sdm .sdt small{font-weight:400;color:var(--muted);font-size:12.5px;margin-left:6px}
 .igs{margin:14px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
 .igc{border:1px solid var(--line);border-radius:12px;background:var(--soft);padding:0 14px}
 .igc summary{cursor:pointer;list-style:none;padding:12px 0;display:flex;gap:8px;align-items:center;font-size:14px}
@@ -2503,10 +2507,44 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
     var d=e.target; if(!d.classList||!d.classList.contains('igc')||!d.open) return;
     var box=d.querySelector('.igbox'); if(box&&!box.firstChild){ var f=document.createElement('iframe'); f.loading='lazy'; f.src='https://www.instagram.com/'+d.dataset.ig+'/embed/'; f.title=d.dataset.ig+' 인스타그램 미리보기'; box.appendChild(f); }
   },true);
+
+  /* ───────── 스드메 조합 합계 ───────── */
+  var SDM=[['s','studio','스튜디오'],['d','dress','드레스'],['m','makeup','메이크업']];
+  function nums(v){ var m=String(v||'').replace(/,/g,'').match(/\d+(\.\d+)?/g); return m?m.map(Number):[]; }
+  function sdmCalc(){
+    var lo=0,hi=0,miss=[],parts=[];
+    SDM.forEach(function(g){
+      var nm=st.ui2.sdm[g[0]]; if(!nm) return;
+      var r=(st.vendors[g[1]]||[]).filter(function(x){return !x.del&&x.n===nm;})[0]; if(!r) return;
+      var n=nums(r.p1);
+      if(!n.length){ miss.push(g[2]); return; }
+      var a=Math.min.apply(null,n), b=Math.max.apply(null,n); lo+=a; hi+=b;
+      parts.push(g[2]+' '+(a===b?a:a+'~'+b));
+    });
+    return {lo:lo,hi:hi,miss:miss,parts:parts};
+  }
+  function sdmText(){
+    var c=sdmCalc(), any=SDM.some(function(g){return st.ui2.sdm[g[0]];});
+    if(!any) return '조합을 고르면 합계가 나옵니다';
+    var t=(c.lo===c.hi?c.lo:c.lo+'~'+c.hi)+'만원';
+    return t+'<small>추가금 별도'+(c.miss.length?' · '+esc(c.miss.join('·'))+' 가격 미정(제외)':'')+'</small>';
+  }
+  function sdmPaint(){ var el=document.querySelector('#sdm .sdt'); if(el) el.innerHTML='스드메 합계 '+sdmText(); }
+  function sdmHTML(){
+    var h='<div class="sdm" id="sdm"><div class="sdt"></div>';
+    SDM.forEach(function(g){
+      var cur=st.ui2.sdm[g[0]];
+      h+='<select data-sdm="'+g[0]+'" aria-label="'+g[2]+'"><option value="">'+g[2]+' 선택 안 함</option>'+(st.vendors[g[1]]||[]).filter(function(x){return !x.del&&x.n;}).map(function(x){ return '<option value="'+esc(x.n)+'"'+(x.n===cur?' selected':'')+'>'+esc(x.n)+(nums(x.p1).length?' · '+esc(x.p1)+'만':'')+'</option>'; }).join('')+'</select>';
+    });
+    return h+'</div>';
+  }
+  document.getElementById('pane-vendors').addEventListener('change',function(e){ var t=e.target; if(t.dataset&&t.dataset.sdm){ st.ui2.sdm[t.dataset.sdm]=t.value; save(); sdmPaint(); } });
+  document.getElementById('pane-vendors').addEventListener('input',function(e){ if(e.target.dataset&&(e.target.dataset.v==='p1')) setTimeout(sdmPaint,0); });
   var _rv=window.renderVendors;
   window.renderVendors=function(){
     _rv.apply(this,arguments);
     var pane=document.getElementById('pane-vendors'); if(!pane) return;
+    var oldS=document.getElementById('sdm'); if(oldS) oldS.remove(); var first=[].slice.call(pane.querySelectorAll('.vgroup')).filter(function(g){ return ((g.querySelector('.catband h2')||{}).textContent||'').indexOf('스튜디오')===0; })[0]||pane.querySelector('.vgroup'); var holder=document.createElement('div'); holder.innerHTML=sdmHTML(); pane.insertBefore(holder.firstChild, first||null); sdmPaint();
     pane.querySelectorAll('.vgroup').forEach(function(g){ var t=(g.querySelector('.catband h2')||{}).textContent||''; var k=t.indexOf('스튜디오')===0?'studio':t.indexOf('메이크업')===0?'makeup':t.indexOf('드레스')===0?'dress':''; var ig=k&&igHTML(k); if(ig){ var w=document.createElement('div'); w.innerHTML='<h4 style="margin:18px 0 0;font-size:14px">인스타그램</h4>'+ig; g.appendChild(w); } });
     var wrap=document.createElement('div'); wrap.className='vnotes'; wrap.id='vnotes';
     wrap.innerHTML='<div class="catband"><h2>조사 메모 · 플래너 확인</h2></div>'+

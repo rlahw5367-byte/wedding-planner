@@ -2120,7 +2120,7 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 
   /* ───────── 새 저장 데이터: 타임라인 담당, 입주 예정일 (공동 편집·버전·백업에 함께) ───────── */
   function defUI(){ return {tlWho:{}, moveIn:'', vm:0, sdm:{s:'',d:'',m:''}}; }
-  function normUI(x){ var d=defUI(); if(x&&typeof x==='object'){ if(x.tlWho&&typeof x.tlWho==='object') d.tlWho=x.tlWho; if(typeof x.moveIn==='string') d.moveIn=x.moveIn; if(x.vm===1) d.vm=1; if(x.sdm&&typeof x.sdm==='object'){ ['s','d','m'].forEach(function(k){ if(typeof x.sdm[k]==='string') d.sdm[k]=x.sdm[k]; }); } } return d; }
+  function normUI(x){ var d=defUI(); if(x&&typeof x==='object'){ if(x.tlWho&&typeof x.tlWho==='object') d.tlWho=x.tlWho; if(typeof x.moveIn==='string') d.moveIn=x.moveIn; if(x.vm>=1) d.vm=x.vm; if(x.sdm&&typeof x.sdm==='object'){ ['s','d','m'].forEach(function(k){ if(typeof x.sdm[k]==='string') d.sdm[k]=x.sdm[k]; }); } } return d; }
   var _d=window.defaults; window.defaults=function(){ var r=_d.apply(this,arguments); r.ui2=defUI(); return r; };
   var _h=window.hydrate; window.hydrate=function(x){ var r=_h.apply(this,arguments); r.ui2=(x&&x.ui2)?normUI(x.ui2):((typeof st!=='undefined'&&st&&st.ui2)?st.ui2:defUI()); return r; };
   var _c=window.compact; window.compact=function(){ var o=_c.apply(this,arguments); o.ui2=JSON.parse(JSON.stringify(st.ui2)); return o; };
@@ -2368,37 +2368,55 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   function fresh(){
     return {
       studio:[
-        row('이브로제하우스 A타입','200','의상·시간 추가 불가 · 야간 제외 · 로드 추가 불가','오전 · 4시간 · 의상 3벌 · 앨범 20p · 액자 · 원본/수정본'),
+        row('이브로제하우스 A타입','200','작가 지정비 11만~ · 의상 추가 1벌 11~33만 · 액자 업그레이드 11~55만','오전 · 4시간 · 의상 3벌 · 앨범 20p · 액자 · 원본/수정본'),
         row('이브로제하우스 B타입','230','로드 촬영 22만 별도 · 야간 제외','5시간 · 의상 4벌 · 앨범/액자/원본·수정본'),
         row('글렌하우스','165','로드 22만 별도 · 야간 불가','오전 · 드레스 4벌 + 개인 의상 1벌 · 앨범/액자/원본·수정본 · 모바일 선수정 7컷'),
         row('피아스튜디오(fia)','165','시간·의상 수가 계약서에 없음 → 서면 확인','앨범 20p · 액자 · 원본/수정본 · 옥상 촬영 포함')
       ],
       dress:[
-        row('아뜰리에로리에','198','헬퍼비·피팅비 별도(확인 필요)','내 계약서 · 촬영 3벌 + 본식 1벌 · 장식·베일 포함'),
-        row('로즈로사','214','헬퍼비·피팅비 별도(확인 필요)','내 계약서 · 촬영 3벌 + 본식 1벌 · 장식·베일 포함'),
+        row('아뜰리에로리에','198','헬퍼비 회당 25~30만 · 추가·재가봉 피팅비 5.5~22만 · 프리미엄라인 +33만~','내 계약서 · 촬영 3벌 + 본식 1벌 · 장식·베일 포함'),
+        row('로즈로사','214','헬퍼비·피팅비 별도(계약서에 업체별 상이 안내)','내 계약서 · 촬영 3벌 + 본식 1벌 · 장식·베일 포함'),
         row('우아르','121','내 계약서 아님','베리굿웨딩 2026-05-27 공개 자료 · 촬영 + 본식'),
         row('루이즈블랑','139~165','내 계약서 아님','같은 날짜·대행사의 공개 가격 범위')
       ],
-      makeup:[ row('애브뉴준오','','가격·추가금 미확인','계약서에 있는 업체 · 다른 업체는 아직 안 알아봄') ]
+      makeup:[ row('애브뉴준오','110','지정비 5.5~22만 · 헤어피스 10~44만 · 얼리스타트 5.5~22만','[실장] 촬영 1회+본식 1회 · 신랑 포함 · 부원장·원장 진행 시 +11~33만') ]
     };
   }
   function blank(r){ return !(r.n||r.date||r.p1||r.p2||r.memo||r.rate); }
-  function migrate(o){
-    if(!o||!o.vendors||!o.ui2||o.ui2.vm===1) return false;
-    var f=fresh();
+  var VM=2;
+  function patch(o){
+    var f=fresh(), ch=false;
     Object.keys(f).forEach(function(k){
-      var cur=Array.isArray(o.vendors[k])?o.vendors[k]:[];
-      var keep=[];
-      cur.forEach(function(r){ if(!r) return; if(blank(r)) return; if(!r.del) r.del=true; keep.push(r); });
-      var names={}; keep.forEach(function(r){ if(!r.del) names[r.n]=1; });
-      var add=f[k].filter(function(r){ return !names[r.n]; });
-      o.vendors[k]=add.concat(keep);
+      (o.vendors[k]||[]).forEach(function(r){
+        if(!r||r.del) return;
+        f[k].forEach(function(x){
+          if(x.n!==r.n) return;
+          if(!r.p1 && x.p1){ r.p1=x.p1; ch=true; }
+          if((!r.p2||/^(가격·추가금 미확인|헬퍼비·피팅비 별도\(확인 필요\)|의상·시간 추가 불가 · 야간 제외 · 로드 추가 불가)$/.test(r.p2)) && r.p2!==x.p2){ r.p2=x.p2; ch=true; }
+          if(r.memo==='계약서에 있는 업체 · 다른 업체는 아직 안 알아봄'){ r.memo=x.memo; ch=true; }
+        });
+      });
     });
-    o.ui2.vm=1; return true;
+    return ch;
   }
-  var _d=window.defaults; window.defaults=function(){ var r=_d.apply(this,arguments); var f=fresh(); r.vendors.studio=f.studio; r.vendors.dress=f.dress; r.vendors.makeup=f.makeup; if(r.ui2) r.ui2.vm=1; return r; };
-  var _h=window.hydrate; window.hydrate=function(x){ var r=_h.apply(this,arguments); if(!(x&&x.ui2&&x.ui2.vm===1)&&r.ui2){ r.ui2=JSON.parse(JSON.stringify(r.ui2)); r.ui2.vm=0; } if(migrate(r)) setTimeout(function(){ try{ save(); }catch(e){} },400); return r; };
-  try{ var had=st.ui2&&st.ui2.vm===1; migrate(st); if(!had){ save(); } }catch(e){}
+  function migrate(o){
+    if(!o||!o.vendors||!o.ui2||o.ui2.vm>=VM) return false;
+    if(!(o.ui2.vm>=1)){
+      var f=fresh();
+      Object.keys(f).forEach(function(k){
+        var cur=Array.isArray(o.vendors[k])?o.vendors[k]:[];
+        var keep=[];
+        cur.forEach(function(r){ if(!r) return; if(blank(r)) return; if(!r.del) r.del=true; keep.push(r); });
+        var names={}; keep.forEach(function(r){ if(!r.del) names[r.n]=1; });
+        var add=f[k].filter(function(r){ return !names[r.n]; });
+        o.vendors[k]=add.concat(keep);
+      });
+    } else patch(o);
+    o.ui2.vm=VM; return true;
+  }
+  var _d=window.defaults; window.defaults=function(){ var r=_d.apply(this,arguments); var f=fresh(); r.vendors.studio=f.studio; r.vendors.dress=f.dress; r.vendors.makeup=f.makeup; if(r.ui2) r.ui2.vm=VM; return r; };
+  var _h=window.hydrate; window.hydrate=function(x){ var r=_h.apply(this,arguments); if(!(x&&x.ui2&&x.ui2.vm>=1)&&r.ui2){ r.ui2=JSON.parse(JSON.stringify(r.ui2)); r.ui2.vm=0; } else if(x&&x.ui2&&r.ui2){ r.ui2.vm=x.ui2.vm; } if(migrate(r)) setTimeout(function(){ try{ save(); }catch(e){} },400); return r; };
+  try{ if(migrate(st)){ save(); } }catch(e){}
 
   var NOTES={
     studio:'<h4>공통 — 먼저 알아둘 것</h4><ul>'+
@@ -2527,7 +2545,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
     var c=sdmCalc(), any=SDM.some(function(g){return st.ui2.sdm[g[0]];});
     if(!any) return '조합을 고르면 합계가 나옵니다';
     var t=(c.lo===c.hi?c.lo:c.lo+'~'+c.hi)+'만원';
-    return t+'<small>추가금 별도'+(c.miss.length?' · '+esc(c.miss.join('·'))+' 가격 미정(제외)':'')+'</small>';
+    var pf=Math.round(c.lo*0.03*10)/10, pf2=Math.round(c.hi*0.03*10)/10; var tot=(c.lo===c.hi?Math.round((c.lo+pf)*10)/10:Math.round((c.lo+pf)*10)/10+'~'+Math.round((c.hi+pf2)*10)/10);
+    return t+'<small>플래닝피 3% 포함 '+tot+'만 · 추가금·투어비 별도'+(c.miss.length?' · '+esc(c.miss.join('·'))+' 가격 미정(제외)':'')+'</small>';
   }
   function sdmPaint(){ var el=document.querySelector('#sdm .sdt'); if(el) el.innerHTML='스드메 합계 '+sdmText(); }
   function sdmHTML(){

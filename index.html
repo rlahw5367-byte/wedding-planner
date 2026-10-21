@@ -1600,5 +1600,350 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   decorate();
 })();
 </script>
+<style id="hall-tour">
+#hallTour{margin:22px 0 10px}
+#hallTour .ht-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:9px 0 8px;border-bottom:1px solid var(--sage2)}
+#hallTour .ht-head h2{font-size:30px}
+#hallTour .ht-head .cnt{font-size:11.5px;font-weight:300;color:var(--muted)}
+.ht-pipe{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 4px}
+.ht-pipe span{font-size:12px;padding:4px 11px;border-radius:100px;border:1px solid var(--line);color:var(--muted);background:var(--panel)}
+.ht-pipe span b{font-weight:500;color:var(--ink);margin-left:4px}
+.ht-pipe span.on{border-color:var(--sage2);color:var(--sage)}
+.ht-tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 20px;margin:16px 0 6px;align-items:end}
+.ht-tools label{display:block;font-size:11.5px;font-weight:300;color:var(--muted);margin-bottom:5px}
+.ht-tools input,.ht-tools select{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:8px 10px;font-size:14px}
+.ht-tools .btn{padding:8px 14px;font-size:13px}
+.ht-route{font-size:13px;font-weight:300;line-height:1.75;color:var(--muted);margin:10px 0 0}
+.ht-route b{font-weight:500;color:var(--ink)}
+.ht-sum{width:100%;border-collapse:collapse;margin:16px 0 4px;font-size:13.5px}
+.ht-sum th{text-align:left;font-size:11px;font-weight:300;color:var(--muted);padding:7px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.ht-sum td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.ht-sum td.n,.ht-sum th.n{text-align:right;white-space:nowrap}
+.ht-sum a{color:var(--ink);text-decoration:none;font-weight:500}
+.ht-sum a:hover{color:var(--sage)}
+.ht-sum .x{opacity:.4}
+.ht-sum small{display:block;font-size:11px;font-weight:300;color:var(--muted)}
+
+.hcard{border:1px solid var(--line);border-radius:8px;background:var(--panel);margin:22px 0 0;overflow:hidden;scroll-margin-top:110px}
+.hcard.out{opacity:.55}
+.hc-top{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:16px 18px 12px}
+.hc-top h3{font-size:30px;line-height:1}
+.hc-top .sub{display:block;font-family:"Gothic A1",sans-serif;font-size:12.5px;font-weight:300;color:var(--muted);margin-top:6px;letter-spacing:0}
+.hc-top .sp{flex:1}
+.hc-score{text-align:right}
+.hc-score b{font-size:24px;font-weight:700;color:var(--sage);letter-spacing:-.02em}
+.hc-score small{font-size:12px;font-weight:300;color:var(--muted)}
+.hc-status{background:var(--soft);border:1px solid var(--line);border-radius:100px;padding:6px 12px;font-size:13px;font-weight:500;color:var(--sage);cursor:pointer}
+.hc-status[data-s="제외"]{color:var(--muted)}
+.hc-status[data-s="가계약"]{background:var(--sage);color:var(--paper);border-color:var(--sage)}
+
+.hc-photos{display:flex;gap:6px;overflow-x:auto;padding:0 18px 4px;scroll-snap-type:x proximity;scrollbar-width:thin}
+.hc-photos button{flex:none;position:relative;width:228px;height:152px;border:0;padding:0;border-radius:5px;overflow:hidden;cursor:zoom-in;background:var(--soft);scroll-snap-align:start}
+.hc-photos button:first-child{width:300px}
+.hc-photos img{width:100%;height:100%;object-fit:cover;display:block}
+.hc-photos button span{position:absolute;left:6px;bottom:6px;font-size:11px;padding:2px 8px;border-radius:100px;background:rgba(20,20,15,.62);color:#fff}
+.hc-src{padding:4px 18px 0;font-size:11px;font-weight:300;color:var(--muted)}
+.hc-src a{color:var(--muted)}
+
+.hc-body{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:4px 28px;padding:14px 18px 18px}
+.hc-body h4{font-size:12px;font-weight:500;color:var(--sage);margin:14px 0 6px;letter-spacing:.02em}
+.hc-body h4:first-child{margin-top:0}
+.hc-why{font-size:13.5px;font-weight:300;line-height:1.75;margin:0}
+.hc-scores{display:flex;flex-wrap:wrap;gap:4px 12px;margin:8px 0 0;font-size:12px;color:var(--muted);font-weight:300}
+.hc-scores b{font-weight:500;color:var(--ink)}
+.hc-facts{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:13px;font-weight:300;margin:0}
+.hc-facts dt{color:var(--muted);white-space:nowrap}
+.hc-facts dd{margin:0}
+.hc-slots{width:100%;border-collapse:collapse;font-size:13px}
+.hc-slots th{text-align:left;font-size:11px;font-weight:300;color:var(--muted);padding:5px 4px;border-bottom:1px solid var(--line)}
+.hc-slots td{padding:6px 4px;border-bottom:1px solid var(--line)}
+.hc-slots td.n,.hc-slots th.n{text-align:right;white-space:nowrap}
+.hc-slots tr.sel td{background:var(--soft)}
+.hc-slots tr.sel td:first-child{box-shadow:inset 3px 0 var(--sage)}
+.hc-slots input[type=radio]{accent-color:var(--sage);width:16px;height:16px;vertical-align:-3px;margin:0 6px 0 0;cursor:pointer}
+.hc-slots .hi{color:var(--clay);font-weight:500}
+.av{border:1px solid var(--line);background:var(--panel);border-radius:100px;font-size:11.5px;padding:2px 10px;cursor:pointer;color:var(--muted);min-width:52px}
+.av[data-v="가능"]{border-color:var(--sage);color:var(--sage);font-weight:500}
+.av[data-v="마감"]{border-color:var(--clay);color:var(--clay);text-decoration:line-through}
+.hc-note{font-size:12px;font-weight:300;color:var(--muted);margin:6px 0 0;line-height:1.6}
+.hc-form{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.hc-form label{font-size:11.5px;font-weight:300;color:var(--muted)}
+.hc-form input,.hc-form textarea{display:block;width:100%;margin-top:3px;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:7px 9px;font-size:14px}
+.hc-form textarea{min-height:76px;resize:vertical;line-height:1.6}
+.hc-form .full{grid-column:1/-1}
+.hc-checks{list-style:none;margin:0;padding:0}
+.hc-checks li{display:flex;gap:9px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;font-weight:300;line-height:1.6}
+.hc-checks li:last-child{border-bottom:0}
+.hc-checks input{margin-top:3px;width:16px;height:16px;accent-color:var(--sage);flex:none;cursor:pointer}
+.hc-checks li.done span{text-decoration:line-through;color:var(--muted)}
+.hc-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.hc-links a{font-size:12.5px;text-decoration:none;padding:5px 13px;border:1px solid var(--line);border-radius:100px;color:var(--sage)}
+.hc-links a:hover{border-color:var(--sage2)}
+
+#htBox{position:fixed;inset:0;z-index:200;background:rgba(14,14,10,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+#htBox[hidden]{display:none}
+#htBox img{max-width:100%;max-height:calc(100vh - 120px);object-fit:contain;border-radius:4px}
+#htBox .cap{color:#eee;font-size:13px;margin-top:10px;text-align:center}
+#htBox .cap a{color:#bbb}
+#htBox button{position:absolute;background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:100px;width:44px;height:44px;font-size:22px;cursor:pointer}
+#htBox .bx{top:14px;right:14px}
+#htBox .bp{left:10px;top:50%;transform:translateY(-50%)}
+#htBox .bn{right:10px;top:50%;transform:translateY(-50%)}
+
+@media (max-width:760px){
+  .hc-body{grid-template-columns:1fr}
+  .hc-photos button{width:200px;height:136px}
+  .hc-photos button:first-child{width:250px}
+  .hc-top h3{font-size:27px}
+  .ht-sum .hide-m{display:none}
+}
+</style>
+<script>
+(function(){
+  "use strict";
+  /* ───────── 고정 정보: 웨딩홀리스트 시트(확인일 2026-10-21) + 두 분 점수표 + 공식 홈페이지 사진 ───────── */
+  var CF='https://d1b8ovf9vuwu72.cloudfront.net/public/images/';
+  function ap(path){ var l=CF+path+'.jpg'; return {s:'https://apelgamo.com/_next/image?url='+encodeURIComponent(l)+'&w=828&q=70', l:l}; }
+  function im(id){ var u='https://cdn.imweb.me/thumbnail/'+id+'.jpg'; return {s:u,l:u}; }
+  function el(path,small){ var b='https://elbless.com/wp-content/uploads/'+path; return {s:b+small, l:b+(small.indexOf('.png')>-1?'.png':'.jpg')}; }
+  function P(o,c){ o.c=c; return o; }
+  var STATUSES=['후보','가능시간 문의 중','투어 예약','투어 완료','가계약','제외'];
+  var T6=['11:00','12:30','14:00','15:30','17:00','18:30'];
+  function same(g){ return T6.map(function(t){ return {t:t,g:g}; }); }
+
+  var HALLS=[
+  { id:'laon', name:'라온제나 강남', hall:'플로렌스홀', area:'강남구청',
+    rent:850, meal:8.5, mealNote:'뷔페 · 음주류·부가세·봉사료 포함',
+    seats:'200석 · 8층 (연회장 7층 700석)', gap:'90분',
+    slots:same(100), slotNote:'보증 100명이라 시간대와 관계없이 하객 수만큼 식대가 나갑니다.',
+    subway:'7호선·수인분당선 강남구청역 3번 출구 도보 3분',
+    parking:'논현 주차타워 약 400대 · 하객 2시간 무료(플랫폼 안내)',
+    addr:'서울 강남구 논현동 117-7 JK타워 7·8층', tel:'02-3447-1133',
+    home:'http://xn--939ao9fob394buxtzvc.com/FlorenceHall', homeLabel:'라온제나강남.com',
+    sc:[8,8,7,8.5,8.5], total:'40',
+    why:'갈비탕·중식·생연어와 음식 리필에 긍정적 후기. 초밥은 아쉬웠다는 시식기도 있음. 식사하러 한 층 내려가는 계단과 작은 엘리베이터가 가장 분명한 약점. 홀·대기실·전망은 호평.',
+    checks:['홀(8층)→연회장(7층) 이동: 계단·엘리베이터 대기를 직접 걸어보기','착석 200석 — 250명일 때 서는 하객이 어디에 서는지','시식 때 초밥 등 음식 편차 확인','만차 시 배정 주차장 위치와 발레 여부·요금'],
+    photos:[P(im('20241220/0f915b9cf02ee'),'버진로드'),P(im('20241220/77e98b2b36a7f'),'버진로드'),P(im('20241220/c8894079727d5'),'단상'),P(im('20241220/9ed944db49f4e'),'단상 장식'),P(im('20241220/0c0dabd79b38d'),'단상'),P(im('20241220/a69c785e27ae9'),'테이블 장식'),P(im('20241220/245a5eea8e605'),'신부대기실'),P(im('20241220/da0d9dd4bd8a2'),'신부대기실'),P(im('20241220/f582a3f717083'),'대기실 입구'),P(im('20241220/14cefaa011892'),'포토테이블'),P(im('20241220/f6d6b7b33c0f7'),'로비'),P(im('20241220/69056fe643dd1'),'로비 라운지'),P(im('20241220/1122bf690af64'),'연회장'),P(im('20211228/efdf0fbb5a95a'),'연회장'),P(im('20241220/e443ebbf399cd'),'뷔페'),P(im('20211228/2d59d66ecc8b5'),'연회장 입구')] },
+  { id:'sl', name:'아펠가모 선릉', hall:'단독홀', area:'선릉',
+    rent:900, meal:9, mealNote:'뷔페 · 음주류·부가세 포함, 봉사료 없음',
+    seats:'180석 · 4층 (피로연장 470석)', gap:'90분',
+    slots:same(200), slotNote:'보증 200명 — 하객 250명이면 250명분이 그대로 나갑니다.',
+    subway:'2호선·수인분당선 선릉역 4번 출구 도보 4분',
+    parking:'한신인터밸리24 지하 — 350대·2시간(최근 투어) / 500대·90분(과거 안내)으로 자료가 다름',
+    addr:'서울 강남구 역삼동 707-25 한신인터밸리24 4층', tel:'02-2183-0230',
+    home:'https://apelgamo.com/home/wedding4', homeLabel:'apelgamo.com',
+    sc:[9,8.5,9,9,8], total:'43.5',
+    why:'2025년 본식 후기에서 음식과 동선을 특히 호평. 홀·연회장·화장실이 가까워 어르신에게 편리. 장식은 화려함보다 단정한 채플 스타일이고, 홀·단상이 아담하다는 평가.',
+    checks:['주차 무료시간·대수를 계약서에 숫자로 남기기 (자료마다 다름)','착석 180석 — 250명일 때 서는 하객 동선','단상·촬영 공간이 아담하다는 평 — 원판 찍을 자리 확인','같은 층 연회장까지 실제 이동 거리'],
+    photos:['weddinghall_01','weddinghall_02','weddinghall_03','weddinghall_04','bridalroom_01','bridalroom_02','bridalroom_03','courtesyroom_01','banquet_01','banquet_02','banquet_03','others_01','others_02'].map(function(k){
+      var cap={weddinghall:'웨딩홀',bridalroom:'신부대기실',courtesyroom:'폐백·혼주실',banquet:'피로연장',others:'로비·기타'}[k.split('_')[0]];
+      return P(ap('wedding4/carousel/AP_seolleung_'+k),cap); }) },
+  { id:'bp', name:'아펠가모 반포', hall:'단독홀', area:'고속터미널',
+    rent:900, meal:9, mealNote:'뷔페 · 음주류·부가세·봉사료 포함',
+    seats:'160석 · 지하 2층 (연회장 570석 같은 층)', gap:'90분',
+    slots:[{t:'12:00~14:00 예식',g:300},{t:'그 외 시간',g:250}], slotNote:'정확한 예식 시각은 시트에 없어요. 플래너님께 받은 시간을 아래 메모에 적어두세요.',
+    subway:'3·7호선 고속터미널역 5번 출구 도보 200m',
+    parking:'건물 B3~B5 약 250대 · 2시간 무료(플랫폼 안내)',
+    addr:'서울 서초구 반포동 63-7', tel:'02-3431-0230',
+    home:'https://apelgamo.com/home/wedding2', homeLabel:'apelgamo.com',
+    sc:[8.5,8.5,8.5,9,8.5], total:'43',
+    why:'건물 주차장에서 홀로 연결되고 주요시설이 같은 층이라 편리. 고속터미널 접근성과 우드톤 채플·대기실 장식도 장점. 축의대와 연회장 혼잡, 일부 그릴 음식의 아쉬움이 언급됨.',
+    checks:['예식 교대 시간대에 가서 축의대·연회장 혼잡 보기','착석 160석 — 다섯 곳 중 가장 적음','지하 2층 공간 분위기가 괜찮은지','시식 때 그릴 메뉴 확인','정확한 예식 시각과 시간대별 보증인원'],
+    photos:['weddinghall_01','weddinghall_02','weddinghall_03','weddinghall_04','weddinghall_05','weddinghall_06','bridalroom_01','bridalroom_02','courtesyroom_01','banquet_01','banquet_02','others_01','others_02'].map(function(k){
+      var cap={weddinghall:'웨딩홀',bridalroom:'신부대기실',courtesyroom:'폐백·혼주실',banquet:'연회장',others:'로비·기타'}[k.split('_')[0]];
+      return P(ap('wedding2/carousel/apelgamo/AP_banpo_'+k),cap); }) },
+  { id:'elb', name:'엘블레스', hall:'다이아몬드홀', area:'양재',
+    rent:1100, meal:10, mealNote:'프리미엄 뷔페 · 세금·봉사료 포함 여부 확인 필요',
+    seats:'180석 · 지하 1층 (연회장 550석 같은 층)', gap:'90분',
+    slots:[{t:'11:00',g:250},{t:'12:30',g:300},{t:'14:00',g:300},{t:'15:30',g:250},{t:'17:00',g:200},{t:'18:30',g:200}],
+    slotNote:'점심 골든타임(12:30·14:00)은 보증 300명이라 약 500만원 더 나옵니다.',
+    subway:'3호선·신분당선 양재역 9번 출구 바로 연결',
+    parking:'양재역 주차장 약 900대 · 하객 2시간 무료 (내비: 강남대로 221)',
+    addr:'서울 서초구 양재동 24', tel:'02-526-0300',
+    home:'https://elbless.com/halls/', homeLabel:'elbless.com',
+    sc:[9,9,9,9.5,8.5], total:'45',
+    why:'양재역 직접 연결 + 같은 층 홀·연회장 + 주차 연결이 가장 큰 강점. 하객 후기에서 음식 종류·맛·접시 정리까지 호평. 다만 지하 공간이며 봉투 작성대처럼 좁은 곳은 붐빌 수 있음.',
+    checks:['원하는 시간대가 골든타임(보증 300명)인지','세금·봉사료 포함 여부','봉투 작성대·로비 등 좁은 곳 혼잡','지하 공간 분위기, 역 소음(과거 후기)은 현장에서','공식 사진이 2015~2017년 것 — 지금 장식과 비교'],
+    photos:[P(el('2015/03/2000_1126_elb06','-1030x580.png'),'웨딩홀'),P(el('2016/09/2000_1126_elb02','-1030x580.png'),'웨딩홀'),P(el('2015/03/2000_1126_elb03','-1030x580.png'),'웨딩홀'),P(el('2015/03/2000_1126_elb05','-1030x580.png'),'웨딩홀'),P(el('2015/03/2000_1126_elb17','-1030x580.png'),'웨딩홀'),P(el('2015/03/2000_1126_elb09','-1030x580.png'),'웨딩홀'),P(el('2015/03/2000_1126_elb11','-1030x580.png'),'웨딩홀'),P(el('2015/03/2000_1126_elb18','-1030x580.png'),'신부대기실'),P(el('2015/03/2000_1126_elb15','-1030x580.png'),'신부대기실'),P(el('2017/10/2000_1126_elb22','-1030x580.png'),'신부대기실'),P(el('2015/03/2000_1126_elb10','-1030x580.png'),'로비'),P(el('2015/03/2000_1126_elb13','-1030x580.png'),'로비'),P(el('2015/03/elbless_m2210m','-1030x645.jpg'),'연회장'),P(el('2015/03/elbless_m2209m','-1030x645.jpg'),'연회장'),P(el('2016/09/elbless_main094','-1030x645.jpg'),'뷔페')],
+    photoNote:'공식 홈페이지 사진은 2015~2017년에 올라온 것이에요.' },
+  { id:'wv', name:'더화이트베일', hall:'V hall', area:'남부터미널',
+    rent:950, meal:9.5, mealNote:'부가세·봉사료 포함 · 메뉴(한식→뷔페 변경 여부) 확인',
+    seats:'200석 · 3층 (연회장 500석 2·3층)', gap:'120분 (11:00부터)',
+    slots:[{t:'전 시간대',g:200}], slotNote:'보증 200명. 예식 간격이 2시간이라 다른 곳보다 여유 있게 진행됩니다.',
+    subway:'3호선 남부터미널역 4번 출구 도보 2분',
+    parking:'약 600대 · 2시간 무료 (주차장 서초중앙로2길 10)',
+    addr:'서울 서초구 서초중앙로 14', tel:'02-3474-5000',
+    home:'http://www.thewhiteveil.co.kr/VHall', homeLabel:'thewhiteveil.co.kr',
+    sc:[8,8.5,7.5,9,9], scMark:{0:'*',4:'†'}, total:'42*',
+    why:'남부터미널역 접근성과 주차, 홀별 장식 선택 폭이 장점. 홀·연회장 층 이동과 여러 홀의 공용 진입 동선은 확인 필요. 에스컬레이터가 있어 이동을 보완해줌.',
+    checks:['홀(3층)↔연회장(2·3층) 이동과 공용 진입 동선','여러 홀이 동시에 돌 때 로비 혼잡','기둥 때문에 가려지는 좌석이 있는지','식사가 뷔페로 바뀌었는지, 바뀌었다면 시식'],
+    photos:[P(im('20260107/9e501bbb5fcd2'),'버진로드'),P(im('20260107/16fb0a59e9d58'),'버진로드'),P(im('20260107/1e609c8e557c0'),'홀 전경'),P(im('20250326/18ecf927ff956'),'하객석에서 본 홀'),P(im('20240710/0ffa590632708'),'신부 입장'),P(im('20260107/2461eb821f36d'),'하객석'),P(im('20240905/c71fa2b95e88d'),'꽃장식'),P(im('20240905/d89cbce4332ed'),'꽃장식'),P(im('20260116/581cf8dcfb2d3'),'신부대기실'),P(im('20260107/3432911d54a3d'),'신부대기실'),P(im('20260107/d0bbbc66c75e6'),'포토테이블'),P(im('20240315/117d313cbf2f8'),'혼주대기실')] }
+  ];
+  var SC_LABELS=['식사','주차','동선','교통','홀 장식'];
+
+  /* ───────── 저장 데이터 (공동 편집·버전·백업에 함께 저장) ───────── */
+  function defItem(){ return {status:'후보', slot:0, av:{}, tourDate:'', tourTime:'', quote:'', memo:'', chk:{}}; }
+  function defHalls(){ var o={alt:'', sort:'score', items:{}}; HALLS.forEach(function(h){ o.items[h.id]=defItem(); }); return o; }
+  function normHalls(x){
+    var d=defHalls(); if(!x||typeof x!=='object') return d;
+    d.alt=x.alt||''; d.sort=x.sort==='cost'?'cost':(x.sort==='status'?'status':'score');
+    HALLS.forEach(function(h){ var s=(x.items||{})[h.id]; if(s) d.items[h.id]=Object.assign(defItem(), s, {av:s.av||{}, chk:s.chk||{}}); });
+    return d;
+  }
+  var _def=window.defaults; window.defaults=function(){ var r=_def.apply(this,arguments); r.halls=defHalls(); return r; };
+  var _hy=window.hydrate; window.hydrate=function(x){ var r=_hy.apply(this,arguments); r.halls=(x&&x.halls)?normHalls(x.halls):((typeof st!=='undefined'&&st&&st.halls)?st.halls:defHalls()); return r; };
+  var _cp=window.compact; window.compact=function(){ var o=_cp.apply(this,arguments); o.halls=JSON.parse(JSON.stringify(st.halls)); return o; };
+  try{ var raw=localStorage.getItem(KEY); st.halls=normHalls(raw?JSON.parse(raw).halls:st.halls); }catch(e){ st.halls=normHalls(st.halls); }
+
+  /* ───────── 계산 ───────── */
+  function guests(){ return Number(st.s.guests)||0; }
+  function slotCost(h,sl){ return h.rent + Math.max(guests(), sl.g)*h.meal; }
+  function picked(h){ var it=st.halls.items[h.id]; return h.slots[Math.min(it.slot||0, h.slots.length-1)]; }
+  function estimate(h){ var it=st.halls.items[h.id]; var q=Number(it.quote); return (it.quote!==''&&!isNaN(q)&&q>0)?{v:q,real:true}:{v:slotCost(h,picked(h)),real:false}; }
+  function scoreNum(h){ return h.sc.reduce(function(a,b){return a+b;},0); }
+  function fm(n){ return Math.round(n).toLocaleString('ko-KR'); }
+  function e2(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function dateLabel(v){ var d=new Date(v+'T00:00:00'); if(isNaN(d)) return v||''; var W='일월화수목금토'; return d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate()+'('+W[d.getDay()]+')'; }
+  function ordered(){
+    var a=HALLS.slice(), s=st.halls.sort;
+    if(s==='cost') a.sort(function(x,y){ return estimate(x).v-estimate(y).v; });
+    else if(s==='status') a.sort(function(x,y){ return STATUSES.indexOf(st.halls.items[y.id].status)-STATUSES.indexOf(st.halls.items[x.id].status); });
+    else a.sort(function(x,y){ return scoreNum(y)-scoreNum(x); });
+    var out=a.filter(function(h){return st.halls.items[h.id].status!=='제외';});
+    return out.concat(a.filter(function(h){return st.halls.items[h.id].status==='제외';}));
+  }
+
+  /* ───────── 그리기 ───────── */
+  function cardHTML(h){
+    var it=st.halls.items[h.id], est=estimate(h), sel=Math.min(it.slot||0,h.slots.length-1);
+    var base=Math.min.apply(null,h.slots.map(function(s){return slotCost(h,s);}));
+    var t='<article class="hcard'+(it.status==='제외'?' out':'')+'" id="hc-'+h.id+'" data-hb="'+h.id+'">';
+    t+='<div class="hc-top"><div><h3>'+e2(h.name)+'<span class="sub">'+e2(h.hall)+' · '+e2(h.area)+'</span></h3></div><span class="sp"></span>';
+    t+='<select class="hc-status" data-hb-f="status" data-s="'+e2(it.status)+'" aria-label="진행 상태">'+STATUSES.map(function(s){return '<option'+(s===it.status?' selected':'')+'>'+s+'</option>';}).join('')+'</select>';
+    t+='<div class="hc-score"><b>'+e2(h.total)+'</b><small> / 50</small></div></div>';
+    t+='<div class="hc-photos" role="list">'+h.photos.map(function(p,i){ return '<button type="button" role="listitem" data-hb-ph="'+h.id+':'+i+'" aria-label="'+e2(h.name+' '+p.c)+' 크게 보기"><img src="'+e2(p.s)+'" alt="'+e2(h.name+' '+p.c)+'" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=\'none\'"><span>'+e2(p.c)+'</span></button>'; }).join('')+'</div>';
+    t+='<p class="hc-src">사진 출처: <a href="'+e2(h.home)+'" target="_blank" rel="noopener">'+e2(h.homeLabel)+'</a> 공식 홈페이지'+(h.photoNote?' · '+e2(h.photoNote):'')+'</p>';
+    t+='<div class="hc-body"><div>';
+    t+='<h4>두 분 점수 · 이유</h4><p class="hc-why">'+e2(h.why)+'</p><div class="hc-scores">'+h.sc.map(function(v,i){return SC_LABELS[i]+' <b>'+v+((h.scMark||{})[i]||'')+'</b>';}).join('')+'</div>';
+    t+='<h4>기본 정보</h4><dl class="hc-facts"><dt>교통</dt><dd>'+e2(h.subway)+'</dd><dt>주차</dt><dd>'+e2(h.parking)+'</dd><dt>홀</dt><dd>'+e2(h.seats)+'</dd><dt>예식 간격</dt><dd>'+e2(h.gap)+'</dd><dt>대관료</dt><dd>'+fm(h.rent)+'만원</dd><dt>식대</dt><dd>1인 '+h.meal+'만원 · '+e2(h.mealNote)+'</dd><dt>주소</dt><dd>'+e2(h.addr)+'</dd></dl>';
+    t+='<h4>현장에서 확인할 것</h4><ul class="hc-checks">'+h.checks.map(function(c,i){ var on=!!it.chk[i]; return '<li class="'+(on?'done':'')+'"><input type="checkbox" data-hb-chk="'+i+'" '+(on?'checked':'')+' aria-label="확인함"><span>'+e2(c)+'</span></li>'; }).join('')+'</ul>';
+    t+='</div><div>';
+    t+='<h4>시간대별 예상 (대관료 + 식대, 하객 '+guests()+'명)</h4><table class="hc-slots"><thead><tr><th>시간대</th><th class="n">보증</th><th class="n">예상</th><th class="n">플래너 답변</th></tr></thead><tbody>';
+    h.slots.forEach(function(s,i){ var c=slotCost(h,s), v=it.av[i]||'미확인';
+      t+='<tr class="'+(i===sel?'sel':'')+'"><td><label><input type="radio" name="slot-'+h.id+'" data-hb-slot="'+i+'" '+(i===sel?'checked':'')+'>'+e2(s.t)+'</label></td><td class="n">'+s.g+'명</td><td class="n'+(c>base?' hi':'')+'">'+fm(c)+'만</td><td class="n"><button type="button" class="av" data-hb-av="'+i+'" data-v="'+v+'">'+v+'</button></td></tr>'; });
+    t+='</tbody></table><p class="hc-note">'+e2(h.slotNote)+' 고른 시간대가 위 비교표에 쓰여요. 플래너 답변 칸을 누르면 미확인 → 가능 → 마감 순으로 바뀝니다. 세금·봉사료·필수 스냅 등 별도 비용은 빠져 있어요.</p>';
+    t+='<h4>투어 · 견적 기록</h4><div class="hc-form">';
+    t+='<label>투어 날짜<input type="date" data-hb-f="tourDate" value="'+e2(it.tourDate)+'"></label>';
+    t+='<label>투어 시간<input type="time" data-hb-f="tourTime" value="'+e2(it.tourTime)+'"></label>';
+    t+='<label class="full">받은 견적 총액 (만원, 입력하면 예상 대신 사용)<input type="number" inputmode="decimal" min="0" step="1" data-hb-f="quote" value="'+e2(it.quote)+'" placeholder="예: '+fm(est.real?slotCost(h,picked(h)):est.v)+'"></label>';
+    t+='<label class="full">메모 · 플래너 답변 · 투어 느낌<textarea data-hb-f="memo" placeholder="가능한 날짜·시간, 보증인원 협상, 현장 느낌">'+e2(it.memo)+'</textarea></label></div>';
+    t+='<div class="hc-links"><a href="tel:'+e2(h.tel.replace(/-/g,''))+'">전화 '+e2(h.tel)+'</a><a href="https://map.naver.com/p/search/'+encodeURIComponent(h.name)+'" target="_blank" rel="noopener">네이버 지도</a><a href="'+e2(h.home)+'" target="_blank" rel="noopener">홈페이지</a></div>';
+    t+='</div></div></article>';
+    return t;
+  }
+
+  function boardHTML(){
+    var hs=ordered(), counts={};
+    STATUSES.forEach(function(s){counts[s]=0;}); HALLS.forEach(function(h){ counts[st.halls.items[h.id].status]++; });
+    var t='<section id="hallTour"><div class="ht-head"><h2>웨딩홀 투어</h2><span class="cnt">두 분이 함께 고른 '+HALLS.length+'곳 · '+dateLabel(st.s.date)+' 기준</span></div>';
+    t+='<div class="ht-pipe">'+STATUSES.map(function(s){ return '<span class="'+(counts[s]?'on':'')+'">'+s+'<b>'+counts[s]+'</b></span>'; }).join('')+'</div>';
+    t+='<div class="ht-tools"><div><label for="htAlt">대체 날짜 (플래너 문의 때 함께 전달)</label><input id="htAlt" data-hb-g="alt" value="'+e2(st.halls.alt)+'" placeholder="예: 11/13(토), 11/20(토)"></div>';
+    t+='<div><label for="htSort">정렬</label><select id="htSort" data-hb-g="sort"><option value="score"'+(st.halls.sort==='score'?' selected':'')+'>점수 높은 순</option><option value="cost"'+(st.halls.sort==='cost'?' selected':'')+'>예상 비용 낮은 순</option><option value="status"'+(st.halls.sort==='status'?' selected':'')+'>진행 단계 순</option></select></div>';
+    t+='<div><button type="button" class="btn key" data-hb-copy="1">플래너 문의 메시지 복사</button></div></div>';
+    t+='<p class="ht-route">투어 동선 — <b>1일차</b> 라온제나 강남(강남구청) → 아펠가모 선릉 · <b>2일차</b> 엘블레스(양재) → 더화이트베일(남부터미널) → 아펠가모 반포(고속터미널). 가능하면 <b>예식이 있는 주말</b>에 가야 동선·혼잡이 보여요.</p>';
+    t+='<div class="scroll"><table class="ht-sum"><thead><tr><th>웨딩홀</th><th>상태</th><th class="hide-m">고른 시간대</th><th class="n">비용</th><th class="n">점수</th><th class="n hide-m">투어</th></tr></thead><tbody>';
+    hs.forEach(function(h){ var it=st.halls.items[h.id], es=estimate(h), sl=picked(h);
+      t+='<tr class="'+(it.status==='제외'?'x':'')+'"><td><a href="#hc-'+h.id+'" data-hb-jump="'+h.id+'">'+e2(h.name)+'</a><small>'+e2(h.hall)+'</small></td><td>'+e2(it.status)+'</td><td class="hide-m">'+e2(sl.t)+' · 보증 '+sl.g+'</td><td class="n">'+fm(es.v)+'만<small>'+(es.real?'받은 견적':'예상')+'</small></td><td class="n">'+e2(h.total)+'</td><td class="n hide-m">'+(it.tourDate?dateLabel(it.tourDate)+(it.tourTime?' '+e2(it.tourTime):''):'—')+'</td></tr>'; });
+    t+='</tbody></table></div>';
+    t+=hs.map(cardHTML).join('');
+    t+='<div class="note">비용은 시트 표기 대관료와 식대(하객 수와 보증인원 중 큰 쪽 × 1인 식대)만 더한 값이에요. 꽃장식 업그레이드·본식스냅·음주류 별도분·세금은 홀마다 달라 빠져 있으니, 상담에서 받은 총액을 "받은 견적"에 넣어주세요. 하객 수는 예산 탭의 기본 조건을 따릅니다.</div>';
+    t+='</section>';
+    return t;
+  }
+
+  function paint(){
+    var pane=document.getElementById('pane-vendors'); if(!pane) return;
+    var old=document.getElementById('hallTour'); if(old) old.remove();
+    pane.insertAdjacentHTML('afterbegin', boardHTML());
+  }
+  var _rv=window.renderVendors;
+  window.renderVendors=function(){ var r=_rv.apply(this,arguments); paint(); return r; };
+
+  /* ───────── 문의 메시지 ───────── */
+  function message(){
+    var hs=ordered().filter(function(h){return st.halls.items[h.id].status!=='제외';});
+    var m='안녕하세요, 플래너님. 아래 웨딩홀 예식 가능 시간 확인 부탁드려요.\n\n';
+    m+='· 희망일: '+dateLabel(st.s.date)+(st.halls.alt?' / 대체 가능: '+st.halls.alt:'')+'\n· 예상 하객: '+guests()+'명\n\n';
+    hs.forEach(function(h,i){ m+=(i+1)+'. '+h.name+' '+h.hall+'\n'; });
+    m+='\n홀마다 아래 내용도 같이 알려주시면 감사하겠습니다.\n';
+    m+='- 가능한 시간대와 시간대별 보증인원\n- 세금·봉사료 포함 여부, 본식스냅 등 필수 별도 비용\n- 하객 주차 무료시간과 대수\n- 투어 가능한 날짜 (가능하면 예식이 있는 주말)\n';
+    return m;
+  }
+  function copyText(txt){
+    function fallback(){ var ta=document.createElement('textarea'); ta.value=txt; ta.style.cssText='position:fixed;left:-9999px'; document.body.appendChild(ta); ta.select(); var ok=false; try{ ok=document.execCommand('copy'); }catch(e){} ta.remove(); if(ok) toast('문의 메시지를 복사했어요'); else prompt('아래 내용을 복사해서 보내세요', txt); }
+    if(navigator.clipboard&&window.isSecureContext){ navigator.clipboard.writeText(txt).then(function(){ toast('문의 메시지를 복사했어요'); }, fallback); } else fallback();
+  }
+
+  /* ───────── 사진 크게 보기 ───────── */
+  var box=document.createElement('div'); box.id='htBox'; box.hidden=true; box.setAttribute('role','dialog'); box.setAttribute('aria-modal','true');
+  box.innerHTML='<button type="button" class="bx" aria-label="닫기">×</button><button type="button" class="bp" aria-label="이전 사진">‹</button><img alt="" referrerpolicy="no-referrer"><p class="cap"></p><button type="button" class="bn" aria-label="다음 사진">›</button>';
+  document.body.appendChild(box);
+  var cur={h:null,i:0};
+  function show(){ var h=cur.h, p=h.photos[cur.i]; var img=box.querySelector('img'); img.src=p.s; img.alt=h.name+' '+p.c;
+    var hi=new Image(); hi.referrerPolicy='no-referrer'; hi.onload=function(){ if(cur.h===h&&h.photos[cur.i]===p) img.src=p.l; }; hi.src=p.l;
+    box.querySelector('.cap').innerHTML=e2(h.name+' · '+p.c)+' ('+(cur.i+1)+'/'+h.photos.length+') · <a href="'+e2(h.home)+'" target="_blank" rel="noopener">공식 홈페이지</a>'; }
+  function open(id,i){ cur.h=HALLS.filter(function(h){return h.id===id;})[0]; if(!cur.h) return; cur.i=i; box.hidden=false; document.body.style.overflow='hidden'; show(); box.querySelector('.bx').focus(); }
+  function close(){ box.hidden=true; document.body.style.overflow=''; }
+  function step(d){ var n=cur.h.photos.length; cur.i=(cur.i+d+n)%n; show(); }
+  box.addEventListener('click',function(e){ var t=e.target; if(t.classList.contains('bx')||t===box) close(); else if(t.classList.contains('bp')) step(-1); else if(t.classList.contains('bn')) step(1); });
+  document.addEventListener('keydown',function(e){ if(box.hidden) return; if(e.key==='Escape') close(); else if(e.key==='ArrowLeft') step(-1); else if(e.key==='ArrowRight') step(1); });
+  var tx=null; box.addEventListener('touchstart',function(e){ tx=e.touches[0].clientX; },{passive:true});
+  box.addEventListener('touchend',function(e){ if(tx==null) return; var dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>50) step(dx<0?1:-1); tx=null; });
+
+  /* ───────── 입력 처리 ───────── */
+  var pane=document.getElementById('pane-vendors');
+  function itemOf(t){ var c=t.closest('[data-hb]'); return c?{id:c.dataset.hb,it:st.halls.items[c.dataset.hb]}:null; }
+  pane.addEventListener('input',function(e){
+    var t=e.target;
+    if(t.dataset.hbG==='alt'){ st.halls.alt=t.value; save(); return; }
+    var o=itemOf(t); if(!o) return;
+    var f=t.dataset.hbF;
+    if(f==='memo'||f==='quote'||f==='tourDate'||f==='tourTime'){ o.it[f]=t.value; save(); }
+  });
+  pane.addEventListener('change',function(e){
+    var t=e.target;
+    if(t.dataset.hbG==='sort'){ st.halls.sort=t.value; save(); paint(); return; }
+    var o=itemOf(t); if(!o) return;
+    if(t.dataset.hbF==='status'){ o.it.status=t.value; save(); paint(); var c=document.getElementById('hc-'+o.id); if(c) c.scrollIntoView({block:'nearest'}); return; }
+    if(t.dataset.hbF==='quote'||t.dataset.hbF==='tourDate'||t.dataset.hbF==='tourTime'){ save(); paint(); return; }
+    if(t.dataset.hbSlot!=null){ o.it.slot=+t.dataset.hbSlot; save(); paint(); return; }
+    if(t.dataset.hbChk!=null){ o.it.chk[t.dataset.hbChk]=t.checked; t.closest('li').classList.toggle('done',t.checked); save(); }
+  });
+  pane.addEventListener('click',function(e){
+    var t=e.target.closest('button,a'); if(!t) return;
+    if(t.dataset.hbPh){ var p=t.dataset.hbPh.split(':'); open(p[0],+p[1]); return; }
+    if(t.dataset.hbCopy){ copyText(message()); return; }
+    if(t.dataset.hbJump){ e.preventDefault(); var c=document.getElementById('hc-'+t.dataset.hbJump); if(c) c.scrollIntoView({behavior:'smooth',block:'start'}); return; }
+    if(t.dataset.hbAv!=null){ var o=itemOf(t); if(!o) return; var seq=['미확인','가능','마감'], v=o.it.av[t.dataset.hbAv]||'미확인'; v=seq[(seq.indexOf(v)+1)%3]; o.it.av[t.dataset.hbAv]=v; t.dataset.v=v; t.textContent=v; save(); }
+  });
+
+  /* ───────── 계약 전 질문 탭에 투어용 질문 추가 ───────── */
+  if(typeof QUESTIONS!=='undefined' && !QUESTIONS.some(function(g){return g.t==='웨딩홀 투어 현장에서';})){
+    QUESTIONS.push({t:'웨딩홀 투어 현장에서', items:[
+      ['희망일과 대체 날짜에 가능한 시간대, 시간대별 보증인원은요?','같은 홀도 점심 골든타임은 보증인원이 올라갑니다. 엘블레스는 12:30·14:00이 300명.'],
+      ['착석 좌석이 하객 수보다 적은데, 서 있는 하객은 어디에 서나요?','다섯 곳 모두 착석 160~200석이라 250명이면 50~90명이 서게 됩니다.'],
+      ['홀에서 연회장까지 실제로 걸어서 몇 분인가요? 엘리베이터는 몇 대인가요?','어르신 하객 기준으로 직접 걸어보세요.'],
+      ['세금·봉사료가 포함된 금액인가요?',''],
+      ['본식스냅·원판처럼 필수로 붙는 별도 비용이 있나요?',''],
+      ['하객 주차 무료시간과 대수를 계약서에 적어주실 수 있나요?','자료마다 숫자가 다른 곳이 있습니다.'],
+      ['예식 교대 시간에 로비·축의대·화장실이 얼마나 붐비나요?','가능하면 예식이 있는 주말에 직접 보세요.'],
+      ['시식은 언제, 몇 명까지 가능한가요?',''],
+      ['지금 계약하면 적용되는 프로모션과 기한은요?','당일 계약 압박이 있으면 서면으로 조건을 받아두고 하루 생각해보세요.']
+    ]});
+  }
+
+  paint();
+})();
+</script>
 </body>
 </html>
